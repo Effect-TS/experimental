@@ -1,6 +1,13 @@
+/**
+ * @since 1.0.0
+ */
 import type * as Effect from "effect/Effect"
 import type * as Option from "effect/Option"
 
+/**
+ * @since 1.0.0
+ * @category models
+ */
 export interface Persistance {
   readonly get: (key: string) => Effect.Effect<never, never, Option.Option<unknown>>
   readonly getMany: (key: string) => Effect.Effect<never, never, Array<Option.Option<unknown>>>
