@@ -52,23 +52,12 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const socketSchema: (<II, IA, OI, OA>(options: {
-  readonly inputSchema: Schema.Schema<II, IA>
-  readonly outputSchema: Schema.Schema<OI, OA>
-}) => (
-  self: Socket
-) => <IE>() => Channel.Channel<
-  never,
-  IE,
-  Chunk.Chunk<IA>,
-  unknown,
-  ParseError | MsgPackError | SocketError | IE,
-  Chunk.Chunk<OA>,
-  void
->) &
-  (<II, IA, OI, OA>(
-    self: Socket,
-    options: { readonly inputSchema: Schema.Schema<II, IA>; readonly outputSchema: Schema.Schema<OI, OA> }
+export declare const socketSchema: {
+  <II, IA, OI, OA>(options: {
+    readonly inputSchema: Schema.Schema<II, IA>
+    readonly outputSchema: Schema.Schema<OI, OA>
+  }): (
+    self: Socket
   ) => <IE>() => Channel.Channel<
     never,
     IE,
@@ -77,7 +66,20 @@ export declare const socketSchema: (<II, IA, OI, OA>(options: {
     ParseError | MsgPackError | SocketError | IE,
     Chunk.Chunk<OA>,
     void
-  >)
+  >
+  <II, IA, OI, OA>(
+    self: Socket,
+    options: { readonly inputSchema: Schema.Schema<II, IA>; readonly outputSchema: Schema.Schema<OI, OA> }
+  ): <IE>() => Channel.Channel<
+    never,
+    IE,
+    Chunk.Chunk<IA>,
+    unknown,
+    ParseError | MsgPackError | SocketError | IE,
+    Chunk.Chunk<OA>,
+    void
+  >
+}
 ```
 
 Added in v1.0.0
