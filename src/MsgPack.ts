@@ -8,7 +8,9 @@ import * as Channel from "effect/Channel"
 import * as Chunk from "effect/Chunk"
 import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
+import { dual, pipe } from "effect/Function"
 import { Packr, Unpackr } from "msgpackr"
+import type { Socket, SocketError } from "./Socket.js"
 
 /**
  * @since 1.0.0
@@ -173,3 +175,64 @@ export const unpackSchema = <I, A>(
   const parse = Schema.parse(Schema.chunkFromSelf(schema))
   return Channel.mapOutEffect(unpack<IE>(), parse)
 }
+
+/**
+ * @since 1.0.0
+ * @category combinators
+ */
+export const socket = (
+  self: Socket
+): Channel.Channel<
+  never,
+  never,
+  Chunk.Chunk<unknown>,
+  unknown,
+  MsgPackError | SocketError,
+  Chunk.Chunk<unknown>,
+  void
+> =>
+  pipe(
+    pack(),
+    Channel.pipeToOrFail(self),
+    Channel.pipeTo(unpack<MsgPackError | SocketError>())
+  )
+
+/**
+ * @since 1.0.0
+ * @category combinators
+ */
+export const socketSchema = dual<
+  <II, IA, OI, OA>(options: {
+    readonly inputSchema: Schema.Schema<II, IA>
+    readonly outputSchema: Schema.Schema<OI, OA>
+  }) => (self: Socket) => <IE>() => Channel.Channel<
+    never,
+    IE,
+    Chunk.Chunk<IA>,
+    unknown,
+    IE | MsgPackError | ParseError | SocketError,
+    Chunk.Chunk<OA>,
+    void
+  >,
+  <II, IA, OI, OA>(self: Socket, options: {
+    readonly inputSchema: Schema.Schema<II, IA>
+    readonly outputSchema: Schema.Schema<OI, OA>
+  }) => <IE>() => Channel.Channel<
+    never,
+    IE,
+    Chunk.Chunk<IA>,
+    unknown,
+    IE | MsgPackError | ParseError | SocketError,
+    Chunk.Chunk<OA>,
+    void
+  >
+>(2, (self, options) => {
+  const pack = packSchema(options.inputSchema)
+  const unpack = unpackSchema(options.outputSchema)
+  return <IE>() =>
+    pipe(
+      pack<IE>(),
+      Channel.pipeToOrFail(self),
+      Channel.pipeTo(unpack())
+    )
+})

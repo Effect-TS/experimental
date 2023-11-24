@@ -12,10 +12,26 @@ Added in v1.0.0
 
 <h2 class="text-delta">Table of contents</h2>
 
+- [exports](#exports)
+  - [From "../Socket.js"](#from-socketjs)
 - [layers](#layers)
   - [layer](#layer)
 
 ---
+
+# exports
+
+## From "../Socket.js"
+
+Re-exports all named exports from the "../Socket.js" module.
+
+**Signature**
+
+```ts
+export * from "../Socket.js"
+```
+
+Added in v1.0.0
 
 # layers
 
