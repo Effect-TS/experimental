@@ -8,6 +8,11 @@ import * as Socket from "../Socket.js"
 
 /**
  * @since 1.0.0
+ */
+export * from "../Socket.js"
+
+/**
+ * @since 1.0.0
  * @category layers
  */
 export const layer = Layer.succeed(
