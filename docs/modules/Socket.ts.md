@@ -12,6 +12,8 @@ Added in v1.0.0
 
 <h2 class="text-delta">Table of contents</h2>
 
+- [combinators](#combinators)
+  - [withInputError](#withinputerror)
 - [errors](#errors)
   - [SocketError (class)](#socketerror-class)
 - [models](#models)
@@ -24,6 +26,18 @@ Added in v1.0.0
   - [SocketPlatformTypeId (type alias)](#socketplatformtypeid-type-alias)
 
 ---
+
+# combinators
+
+## withInputError
+
+**Signature**
+
+```ts
+export declare const withInputError: <IE>(self: Socket) => Socket<IE>
+```
+
+Added in v1.0.0
 
 # errors
 
@@ -44,8 +58,8 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export interface Socket
-  extends Channel<never, never, Chunk<Uint8Array>, unknown, SocketError, Chunk<Uint8Array>, void> {}
+export interface Socket<IE = never>
+  extends Channel<never, IE, Chunk<Uint8Array>, unknown, IE | SocketError, Chunk<Uint8Array>, void> {}
 ```
 
 Added in v1.0.0

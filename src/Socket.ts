@@ -10,13 +10,13 @@ import * as Data from "effect/Data"
  * @since 1.0.0
  * @category models
  */
-export interface Socket extends
+export interface Socket<IE = never> extends
   Channel<
     never,
-    never,
+    IE,
     Chunk<Uint8Array>,
     unknown,
-    SocketError,
+    IE | SocketError,
     Chunk<Uint8Array>,
     void
   >
@@ -64,5 +64,11 @@ export interface SocketPlatform {
  * @category tags
  */
 export const SocketPlatform: Context.Tag<SocketPlatform, SocketPlatform> = Context.Tag<SocketPlatform>(
-  "@effect/experimental/Socket/SocketPlatform"
+  SocketPlatformTypeId
 )
+
+/**
+ * @since 1.0.0
+ * @category combinators
+ */
+export const withInputError = <IE>(self: Socket): Socket<IE> => self as any

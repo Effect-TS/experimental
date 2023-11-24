@@ -10,7 +10,8 @@ import * as Data from "effect/Data"
 import * as Effect from "effect/Effect"
 import { dual, pipe } from "effect/Function"
 import { Packr, Unpackr } from "msgpackr"
-import type { Socket, SocketError } from "./Socket.js"
+import * as Socket from "./Socket.js"
+import type { SocketError } from "./Socket.js"
 
 /**
  * @since 1.0.0
@@ -70,7 +71,7 @@ export const pack = <IE = never>(): Channel.Channel<
 export const packSchema = <I, A>(
   schema: Schema.Schema<I, A>
 ) =>
-<IE>(): Channel.Channel<
+<IE = never>(): Channel.Channel<
   never,
   IE,
   Chunk.Chunk<A>,
@@ -163,7 +164,7 @@ export const unpack = <IE = never>(): Channel.Channel<
 export const unpackSchema = <I, A>(
   schema: Schema.Schema<I, A>
 ) =>
-<IE>(): Channel.Channel<
+<IE = never>(): Channel.Channel<
   never,
   IE,
   Chunk.Chunk<Uint8Array>,
@@ -181,7 +182,7 @@ export const unpackSchema = <I, A>(
  * @category combinators
  */
 export const socket = (
-  self: Socket
+  self: Socket.Socket
 ): Channel.Channel<
   never,
   never,
@@ -193,7 +194,7 @@ export const socket = (
 > =>
   pipe(
     pack(),
-    Channel.pipeToOrFail(self),
+    Channel.pipeTo(Socket.withInputError(self)),
     Channel.pipeTo(unpack<MsgPackError | SocketError>())
   )
 
@@ -205,25 +206,25 @@ export const socketSchema: {
   <II, IA, OI, OA>(
     options: { readonly inputSchema: Schema.Schema<II, IA>; readonly outputSchema: Schema.Schema<OI, OA> }
   ): (
-    self: Socket
+    self: Socket.Socket
   ) => <IE>() => Channel.Channel<
     never,
     IE,
     Chunk.Chunk<IA>,
     unknown,
-    MsgPackError | IE | ParseError | SocketError,
+    MsgPackError | ParseError | Socket.SocketError | IE,
     Chunk.Chunk<OA>,
     void
   >
   <II, IA, OI, OA>(
-    self: Socket,
+    self: Socket.Socket,
     options: { readonly inputSchema: Schema.Schema<II, IA>; readonly outputSchema: Schema.Schema<OI, OA> }
   ): <IE>() => Channel.Channel<
     never,
     IE,
     Chunk.Chunk<IA>,
     unknown,
-    MsgPackError | ParseError | SocketError | IE,
+    MsgPackError | ParseError | Socket.SocketError | IE,
     Chunk.Chunk<OA>,
     void
   >
@@ -231,7 +232,7 @@ export const socketSchema: {
   <II, IA, OI, OA>(options: {
     readonly inputSchema: Schema.Schema<II, IA>
     readonly outputSchema: Schema.Schema<OI, OA>
-  }) => (self: Socket) => <IE>() => Channel.Channel<
+  }) => (self: Socket.Socket) => <IE>() => Channel.Channel<
     never,
     IE,
     Chunk.Chunk<IA>,
@@ -240,7 +241,7 @@ export const socketSchema: {
     Chunk.Chunk<OA>,
     void
   >,
-  <II, IA, OI, OA>(self: Socket, options: {
+  <II, IA, OI, OA>(self: Socket.Socket, options: {
     readonly inputSchema: Schema.Schema<II, IA>
     readonly outputSchema: Schema.Schema<OI, OA>
   }) => <IE>() => Channel.Channel<
@@ -258,7 +259,7 @@ export const socketSchema: {
   return <IE>() =>
     pipe(
       pack<IE>(),
-      Channel.pipeToOrFail(self),
+      Channel.pipeTo(Socket.withInputError(self)),
       Channel.pipeTo(unpack())
     )
 })

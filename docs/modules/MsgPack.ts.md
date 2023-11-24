@@ -33,7 +33,7 @@ Added in v1.0.0
 
 ```ts
 export declare const socket: (
-  self: Socket
+  self: Socket.Socket
 ) => Channel.Channel<
   never,
   never,
@@ -57,25 +57,25 @@ export declare const socketSchema: {
     readonly inputSchema: Schema.Schema<II, IA>
     readonly outputSchema: Schema.Schema<OI, OA>
   }): (
-    self: Socket
+    self: Socket.Socket
   ) => <IE>() => Channel.Channel<
     never,
     IE,
     Chunk.Chunk<IA>,
     unknown,
-    ParseError | MsgPackError | SocketError | IE,
+    ParseError | MsgPackError | Socket.SocketError | IE,
     Chunk.Chunk<OA>,
     void
   >
   <II, IA, OI, OA>(
-    self: Socket,
+    self: Socket.Socket,
     options: { readonly inputSchema: Schema.Schema<II, IA>; readonly outputSchema: Schema.Schema<OI, OA> }
   ): <IE>() => Channel.Channel<
     never,
     IE,
     Chunk.Chunk<IA>,
     unknown,
-    ParseError | MsgPackError | SocketError | IE,
+    ParseError | MsgPackError | Socket.SocketError | IE,
     Chunk.Chunk<OA>,
     void
   >
@@ -111,7 +111,7 @@ Added in v1.0.0
 ```ts
 export declare const packSchema: <I, A>(
   schema: Schema.Schema<I, A>
-) => <IE>() => Channel.Channel<
+) => <IE = never>() => Channel.Channel<
   never,
   IE,
   Chunk.Chunk<A>,
@@ -149,7 +149,7 @@ Added in v1.0.0
 ```ts
 export declare const unpackSchema: <I, A>(
   schema: Schema.Schema<I, A>
-) => <IE>() => Channel.Channel<
+) => <IE = never>() => Channel.Channel<
   never,
   IE,
   Chunk.Chunk<Uint8Array>,
