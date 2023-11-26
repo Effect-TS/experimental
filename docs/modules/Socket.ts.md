@@ -13,12 +13,14 @@ Added in v1.0.0
 <h2 class="text-delta">Table of contents</h2>
 
 - [combinators](#combinators)
+  - [toPull](#topull)
   - [withInputError](#withinputerror)
 - [errors](#errors)
   - [SocketError (class)](#socketerror-class)
 - [models](#models)
   - [Socket (interface)](#socket-interface)
   - [SocketPlatform (interface)](#socketplatform-interface)
+  - [SocketPull (interface)](#socketpull-interface)
 - [tags](#tags)
   - [SocketPlatform](#socketplatform)
 - [type ids](#type-ids)
@@ -28,6 +30,18 @@ Added in v1.0.0
 ---
 
 # combinators
+
+## toPull
+
+**Signature**
+
+```ts
+export declare const toPull: <E, I, O>(
+  self: Channel<never, never, Chunk<I>, unknown, E, Chunk<O>, unknown>
+) => Effect.Effect<Scope, never, SocketPull<E, I, O>>
+```
+
+Added in v1.0.0
 
 ## withInputError
 
@@ -81,6 +95,19 @@ export interface SocketPlatform {
           readonly path: string
         }
   ) => Socket
+}
+```
+
+Added in v1.0.0
+
+## SocketPull (interface)
+
+**Signature**
+
+```ts
+export interface SocketPull<E, I, O> {
+  readonly write: (element: I) => Effect.Effect<never, never, void>
+  readonly pull: Effect.Effect<never, Option<E>, Chunk<O>>
 }
 ```
 
