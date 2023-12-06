@@ -44,21 +44,15 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const persisted: (<EI, EA, AI, AA>(options: {
-  readonly storeId: string
-  readonly failureSchema: Schema.Schema<EI, EA>
-  readonly successSchema: Schema.Schema<AI, AA>
-}) => <Req extends Request.Request<EA, AA> & { readonly _tag: string } & PrimaryKey.PrimaryKey>(
+export declare const persisted: ((
+  storeId: string
+) => <Req extends Schema.TaggedRequest.Any & PrimaryKey.PrimaryKey>(
   self: RequestResolver.RequestResolver<Req, never>
-) => Effect.Effect<Scope.Scope | Persistence.SchemaPersistence, never, RequestResolver.RequestResolver<Req, never>>) &
-  (<Req extends Request.Request<EA, AA> & { readonly _tag: string } & PrimaryKey.PrimaryKey, EI, EA, AI, AA>(
+) => Effect.Effect<Scope.Scope | Persistence.ResultPersistence, never, RequestResolver.RequestResolver<Req, never>>) &
+  (<Req extends Schema.TaggedRequest.Any & PrimaryKey.PrimaryKey>(
     self: RequestResolver.RequestResolver<Req, never>,
-    options: {
-      readonly storeId: string
-      readonly failureSchema: Schema.Schema<EI, EA>
-      readonly successSchema: Schema.Schema<AI, AA>
-    }
-  ) => Effect.Effect<Scope.Scope | Persistence.SchemaPersistence, never, RequestResolver.RequestResolver<Req, never>>)
+    storeId: string
+  ) => Effect.Effect<Scope.Scope | Persistence.ResultPersistence, never, RequestResolver.RequestResolver<Req, never>>)
 ```
 
 Added in v1.0.0
