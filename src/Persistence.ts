@@ -187,4 +187,4 @@ export const layerMemory: Layer.Layer<never, never, BackingPersistence> = Layer.
  * @since 1.0.0
  * @category layers
  */
-export const layerSchemaMemory: Layer.Layer<never, never, SchemaPersistence> = layerSchema.pipe(Layer.use(layerMemory))
+export const layerSchemaMemory: Layer.Layer<never, never, SchemaPersistence> = layerSchema.pipe(Layer.provide(layerMemory))
