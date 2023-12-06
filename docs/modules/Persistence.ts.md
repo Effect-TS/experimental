@@ -18,22 +18,23 @@ Added in v1.0.0
   - [PersistenceSchemaError (class)](#persistenceschemaerror-class)
 - [layers](#layers)
   - [layerMemory](#layermemory)
-  - [layerSchema](#layerschema)
-  - [layerSchemaMemory](#layerschemamemory)
+  - [layerResult](#layerresult)
+  - [layerResultMemory](#layerresultmemory)
 - [models](#models)
   - [BackingPersistence (interface)](#backingpersistence-interface)
-  - [Persistence (interface)](#persistence-interface)
-  - [SchemaPersistence (interface)](#schemapersistence-interface)
+  - [BackingPersistenceStore (interface)](#backingpersistencestore-interface)
+  - [ResultPersistence (interface)](#resultpersistence-interface)
+  - [ResultPersistence (namespace)](#resultpersistence-namespace)
+    - [Key (interface)](#key-interface)
+  - [ResultPersistenceStore (interface)](#resultpersistencestore-interface)
 - [tags](#tags)
   - [BackingPersistence](#backingpersistence)
-  - [SchemaPersistence](#schemapersistence)
+  - [ResultPersistence](#resultpersistence)
 - [type ids](#type-ids)
   - [BackingPersistenceTypeId](#backingpersistencetypeid)
   - [BackingPersistenceTypeId (type alias)](#backingpersistencetypeid-type-alias)
-  - [SchemaPersistenceTypeId](#schemapersistencetypeid)
-  - [SchemaPersistenceTypeId (type alias)](#schemapersistencetypeid-type-alias)
-- [utils](#utils)
-  - [Persistence](#persistence)
+  - [ResultPersistenceTypeId](#resultpersistencetypeid)
+  - [ResultPersistenceTypeId (type alias)](#resultpersistencetypeid-type-alias)
 
 ---
 
@@ -81,22 +82,22 @@ export declare const layerMemory: Layer.Layer<never, never, BackingPersistence>
 
 Added in v1.0.0
 
-## layerSchema
+## layerResult
 
 **Signature**
 
 ```ts
-export declare const layerSchema: Layer.Layer<BackingPersistence, never, SchemaPersistence>
+export declare const layerResult: Layer.Layer<BackingPersistence, never, ResultPersistence>
 ```
 
 Added in v1.0.0
 
-## layerSchemaMemory
+## layerResultMemory
 
 **Signature**
 
 ```ts
-export declare const layerSchemaMemory: Layer.Layer<never, never, SchemaPersistence>
+export declare const layerResultMemory: Layer.Layer<never, never, ResultPersistence>
 ```
 
 Added in v1.0.0
@@ -110,35 +111,75 @@ Added in v1.0.0
 ```ts
 export interface BackingPersistence {
   readonly [BackingPersistenceTypeId]: BackingPersistenceTypeId
-  readonly make: (storeId: string) => Effect.Effect<never, never, Persistence<unknown>>
+  readonly make: (storeId: string) => Effect.Effect<never, never, BackingPersistenceStore>
 }
 ```
 
 Added in v1.0.0
 
-## Persistence (interface)
+## BackingPersistenceStore (interface)
 
 **Signature**
 
 ```ts
-export interface Persistence<A> {
-  readonly get: (key: string) => Effect.Effect<never, PersistenceError, Option.Option<A>>
-  readonly getMany: (key: Array<string>) => Effect.Effect<never, PersistenceError, Array<Option.Option<A>>>
-  readonly set: (key: string, value: A) => Effect.Effect<never, PersistenceError, void>
+export interface BackingPersistenceStore {
+  readonly get: (key: string) => Effect.Effect<never, PersistenceError, Option.Option<unknown>>
+  readonly getMany: (key: Array<string>) => Effect.Effect<never, PersistenceError, Array<Option.Option<unknown>>>
+  readonly set: (key: string, value: unknown) => Effect.Effect<never, PersistenceError, void>
   readonly remove: (key: string) => Effect.Effect<never, PersistenceError, void>
 }
 ```
 
 Added in v1.0.0
 
-## SchemaPersistence (interface)
+## ResultPersistence (interface)
 
 **Signature**
 
 ```ts
-export interface SchemaPersistence {
-  readonly [SchemaPersistenceTypeId]: SchemaPersistenceTypeId
-  readonly make: <I, A>(storeId: string, schema: Schema.Schema<I, A>) => Effect.Effect<never, never, Persistence<A>>
+export interface ResultPersistence {
+  readonly [ResultPersistenceTypeId]: ResultPersistenceTypeId
+  readonly make: (storeId: string) => Effect.Effect<never, never, ResultPersistenceStore>
+}
+```
+
+Added in v1.0.0
+
+## ResultPersistence (namespace)
+
+Added in v1.0.0
+
+### Key (interface)
+
+**Signature**
+
+```ts
+export interface Key<IE, E, IA, A> extends PrimaryKey.PrimaryKey, Serializable.WithResult<IE, E, IA, A> {
+  readonly _tag: string
+}
+```
+
+Added in v1.0.0
+
+## ResultPersistenceStore (interface)
+
+**Signature**
+
+```ts
+export interface ResultPersistenceStore {
+  readonly get: <IE, E, IA, A>(
+    key: ResultPersistence.Key<IE, E, IA, A>
+  ) => Effect.Effect<never, PersistenceError, Option.Option<Exit.Exit<E, A>>>
+  readonly getMany: <IE, E, IA, A>(
+    key: ReadonlyArray<ResultPersistence.Key<IE, E, IA, A>>
+  ) => Effect.Effect<never, PersistenceError, Array<Option.Option<Exit.Exit<E, A>>>>
+  readonly set: <IE, E, IA, A>(
+    key: ResultPersistence.Key<IE, E, IA, A>,
+    value: Exit.Exit<E, A>
+  ) => Effect.Effect<never, PersistenceError, void>
+  readonly remove: <IE, E, IA, A>(
+    key: ResultPersistence.Key<IE, E, IA, A>
+  ) => Effect.Effect<never, PersistenceError, void>
 }
 ```
 
@@ -156,12 +197,12 @@ export declare const BackingPersistence: Context.Tag<BackingPersistence, Backing
 
 Added in v1.0.0
 
-## SchemaPersistence
+## ResultPersistence
 
 **Signature**
 
 ```ts
-export declare const SchemaPersistence: Context.Tag<SchemaPersistence, SchemaPersistence>
+export declare const ResultPersistence: Context.Tag<ResultPersistence, ResultPersistence>
 ```
 
 Added in v1.0.0
@@ -188,34 +229,22 @@ export type BackingPersistenceTypeId = typeof BackingPersistenceTypeId
 
 Added in v1.0.0
 
-## SchemaPersistenceTypeId
+## ResultPersistenceTypeId
 
 **Signature**
 
 ```ts
-export declare const SchemaPersistenceTypeId: typeof SchemaPersistenceTypeId
+export declare const ResultPersistenceTypeId: typeof ResultPersistenceTypeId
 ```
 
 Added in v1.0.0
 
-## SchemaPersistenceTypeId (type alias)
+## ResultPersistenceTypeId (type alias)
 
 **Signature**
 
 ```ts
-export type SchemaPersistenceTypeId = typeof SchemaPersistenceTypeId
-```
-
-Added in v1.0.0
-
-# utils
-
-## Persistence
-
-**Signature**
-
-```ts
-export declare const Persistence: <A>(_: Persistence<A>) => Persistence<A>
+export type ResultPersistenceTypeId = typeof ResultPersistenceTypeId
 ```
 
 Added in v1.0.0
