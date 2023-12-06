@@ -17,8 +17,10 @@ Added in v1.0.0
   - [PersistenceError (type alias)](#persistenceerror-type-alias)
   - [PersistenceSchemaError (class)](#persistenceschemaerror-class)
 - [layers](#layers)
+  - [layerKeyValueStore](#layerkeyvaluestore)
   - [layerMemory](#layermemory)
   - [layerResult](#layerresult)
+  - [layerResultKeyValueStore](#layerresultkeyvaluestore)
   - [layerResultMemory](#layerresultmemory)
 - [models](#models)
   - [BackingPersistence (interface)](#backingpersistence-interface)
@@ -72,6 +74,16 @@ Added in v1.0.0
 
 # layers
 
+## layerKeyValueStore
+
+**Signature**
+
+```ts
+export declare const layerKeyValueStore: Layer.Layer<KeyValueStore.KeyValueStore, never, BackingPersistence>
+```
+
+Added in v1.0.0
+
 ## layerMemory
 
 **Signature**
@@ -88,6 +100,16 @@ Added in v1.0.0
 
 ```ts
 export declare const layerResult: Layer.Layer<BackingPersistence, never, ResultPersistence>
+```
+
+Added in v1.0.0
+
+## layerResultKeyValueStore
+
+**Signature**
+
+```ts
+export declare const layerResultKeyValueStore: Layer.Layer<KeyValueStore.KeyValueStore, never, ResultPersistence>
 ```
 
 Added in v1.0.0
