@@ -13,42 +13,51 @@ Added in v1.0.0
 <h2 class="text-delta">Table of contents</h2>
 
 - [combinators](#combinators)
-  - [toPull](#topull)
-  - [withInputError](#withinputerror)
+  - [toChannel](#tochannel)
+- [constructors](#constructors)
+  - [makeChannel](#makechannel)
 - [errors](#errors)
   - [SocketError (class)](#socketerror-class)
 - [models](#models)
   - [Socket (interface)](#socket-interface)
-  - [SocketPlatform (interface)](#socketplatform-interface)
-  - [SocketPull (interface)](#socketpull-interface)
 - [tags](#tags)
-  - [SocketPlatform](#socketplatform)
+  - [Socket](#socket)
 - [type ids](#type-ids)
-  - [SocketPlatformTypeId](#socketplatformtypeid)
-  - [SocketPlatformTypeId (type alias)](#socketplatformtypeid-type-alias)
+  - [SocketTypeId](#sockettypeid)
+  - [SocketTypeId (type alias)](#sockettypeid-type-alias)
 
 ---
 
 # combinators
 
-## toPull
+## toChannel
 
 **Signature**
 
 ```ts
-export declare const toPull: <E, I, O>(
-  self: Channel<never, never, Chunk<I>, unknown, E, Chunk<O>, unknown>
-) => Effect.Effect<Scope, never, SocketPull<E, I, O>>
+export declare const toChannel: <IE = never>() => (
+  self: Socket
+) => Channel.Channel<never, IE, Chunk.Chunk<Uint8Array>, unknown, IE | SocketError, Chunk.Chunk<Uint8Array>, void>
 ```
 
 Added in v1.0.0
 
-## withInputError
+# constructors
+
+## makeChannel
 
 **Signature**
 
 ```ts
-export declare const withInputError: <IE>(self: Socket) => Socket<IE>
+export declare const makeChannel: <IE = never>() => Channel.Channel<
+  Socket,
+  IE,
+  Chunk.Chunk<Uint8Array>,
+  unknown,
+  SocketError | IE,
+  Chunk.Chunk<Uint8Array>,
+  void
+>
 ```
 
 Added in v1.0.0
@@ -72,42 +81,10 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export interface Socket<IE = never>
-  extends Channel<never, IE, Chunk<Uint8Array>, unknown, IE | SocketError, Chunk<Uint8Array>, void> {}
-```
-
-Added in v1.0.0
-
-## SocketPlatform (interface)
-
-**Signature**
-
-```ts
-export interface SocketPlatform {
-  readonly [SocketPlatformTypeId]: SocketPlatformTypeId
-  readonly open: (
-    options:
-      | {
-          readonly port: number
-          readonly host: string
-        }
-      | {
-          readonly path: string
-        }
-  ) => Socket
-}
-```
-
-Added in v1.0.0
-
-## SocketPull (interface)
-
-**Signature**
-
-```ts
-export interface SocketPull<E, I, O> {
-  readonly write: (element: I) => Effect.Effect<never, never, void>
-  readonly pull: Effect.Effect<never, Option<E>, Chunk<O>>
+export interface Socket {
+  readonly [SocketTypeId]: SocketTypeId
+  readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, SocketError, void>>
+  readonly pull: Effect.Effect<never, Option.Option<SocketError>, Uint8Array>
 }
 ```
 
@@ -115,34 +92,34 @@ Added in v1.0.0
 
 # tags
 
-## SocketPlatform
+## Socket
 
 **Signature**
 
 ```ts
-export declare const SocketPlatform: Context.Tag<SocketPlatform, SocketPlatform>
+export declare const Socket: Context.Tag<Socket, Socket>
 ```
 
 Added in v1.0.0
 
 # type ids
 
-## SocketPlatformTypeId
+## SocketTypeId
 
 **Signature**
 
 ```ts
-export declare const SocketPlatformTypeId: typeof SocketPlatformTypeId
+export declare const SocketTypeId: typeof SocketTypeId
 ```
 
 Added in v1.0.0
 
-## SocketPlatformTypeId (type alias)
+## SocketTypeId (type alias)
 
 **Signature**
 
 ```ts
-export type SocketPlatformTypeId = typeof SocketPlatformTypeId
+export type SocketTypeId = typeof SocketTypeId
 ```
 
 Added in v1.0.0
