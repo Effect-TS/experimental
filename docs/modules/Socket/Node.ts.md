@@ -12,12 +12,51 @@ Added in v1.0.0
 
 <h2 class="text-delta">Table of contents</h2>
 
+- [constructors](#constructors)
+  - [makeNet](#makenet)
+  - [makeNetChannel](#makenetchannel)
 - [exports](#exports)
   - [From "../Socket.js"](#from-socketjs)
 - [layers](#layers)
-  - [layer](#layer)
+  - [layerNet](#layernet)
+- [models](#models)
+  - [NetConfig (interface)](#netconfig-interface)
 
 ---
+
+# constructors
+
+## makeNet
+
+**Signature**
+
+```ts
+export declare const makeNet: (
+  options: Net.NetConnectOpts
+) => Effect.Effect<Scope.Scope, Socket.SocketError, Socket.Socket>
+```
+
+Added in v1.0.0
+
+## makeNetChannel
+
+**Signature**
+
+```ts
+export declare const makeNetChannel: <IE = never>(
+  options: Net.NetConnectOpts
+) => Channel.Channel<
+  never,
+  IE,
+  Chunk.Chunk<Uint8Array>,
+  unknown,
+  Socket.SocketError | IE,
+  Chunk.Chunk<Uint8Array>,
+  void
+>
+```
+
+Added in v1.0.0
 
 # exports
 
@@ -35,12 +74,26 @@ Added in v1.0.0
 
 # layers
 
-## layer
+## layerNet
 
 **Signature**
 
 ```ts
-export declare const layer: Layer.Layer<never, never, Socket.SocketPlatform>
+export declare const layerNet: (options: Net.NetConnectOpts) => Layer.Layer<never, Socket.SocketError, Socket.Socket>
+```
+
+Added in v1.0.0
+
+# models
+
+## NetConfig (interface)
+
+**Signature**
+
+```ts
+export interface NetConfig {
+  readonly _: unique symbol
+}
 ```
 
 Added in v1.0.0

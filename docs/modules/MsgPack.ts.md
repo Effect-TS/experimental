@@ -13,8 +13,8 @@ Added in v1.0.0
 <h2 class="text-delta">Table of contents</h2>
 
 - [combinators](#combinators)
-  - [socket](#socket)
-  - [socketSchema](#socketschema)
+  - [duplex](#duplex)
+  - [duplexSchema](#duplexschema)
 - [constructors](#constructors)
   - [pack](#pack)
   - [packSchema](#packschema)
@@ -27,58 +27,50 @@ Added in v1.0.0
 
 # combinators
 
-## socket
+## duplex
 
 **Signature**
 
 ```ts
-export declare const socket: (
-  self: Socket.Socket
-) => Channel.Channel<
-  never,
-  never,
-  Chunk.Chunk<unknown>,
-  unknown,
-  MsgPackError | SocketError,
-  Chunk.Chunk<unknown>,
-  void
->
+export declare const duplex: <R, IE, OE>(
+  self: Channel.Channel<R, MsgPackError | IE, Chunk.Chunk<Uint8Array>, unknown, OE, Chunk.Chunk<Uint8Array>, void>
+) => Channel.Channel<R, IE, Chunk.Chunk<unknown>, unknown, MsgPackError | OE, Chunk.Chunk<unknown>, void>
 ```
 
 Added in v1.0.0
 
-## socketSchema
+## duplexSchema
 
 **Signature**
 
 ```ts
-export declare const socketSchema: {
+export declare const duplexSchema: {
   <II, IA, OI, OA>(options: {
     readonly inputSchema: Schema.Schema<II, IA>
     readonly outputSchema: Schema.Schema<OI, OA>
-  }): (
-    self: Socket.Socket
-  ) => <IE>() => Channel.Channel<
-    never,
-    IE,
-    Chunk.Chunk<IA>,
-    unknown,
-    ParseError | MsgPackError | Socket.SocketError | IE,
-    Chunk.Chunk<OA>,
-    void
-  >
-  <II, IA, OI, OA>(
-    self: Socket.Socket,
+  }): <R, InErr, OutErr>(
+    self: Channel.Channel<
+      R,
+      ParseError | MsgPackError | InErr,
+      Chunk.Chunk<Uint8Array>,
+      unknown,
+      OutErr,
+      Chunk.Chunk<Uint8Array>,
+      void
+    >
+  ) => Channel.Channel<R, InErr, Chunk.Chunk<IA>, unknown, ParseError | MsgPackError | OutErr, Chunk.Chunk<OA>, void>
+  <R, InErr, OutErr, II, IA, OI, OA>(
+    self: Channel.Channel<
+      R,
+      ParseError | MsgPackError | InErr,
+      Chunk.Chunk<Uint8Array>,
+      unknown,
+      OutErr,
+      Chunk.Chunk<Uint8Array>,
+      void
+    >,
     options: { readonly inputSchema: Schema.Schema<II, IA>; readonly outputSchema: Schema.Schema<OI, OA> }
-  ): <IE>() => Channel.Channel<
-    never,
-    IE,
-    Chunk.Chunk<IA>,
-    unknown,
-    ParseError | MsgPackError | Socket.SocketError | IE,
-    Chunk.Chunk<OA>,
-    void
-  >
+  ): Channel.Channel<R, InErr, Chunk.Chunk<IA>, unknown, ParseError | MsgPackError | OutErr, Chunk.Chunk<OA>, void>
 }
 ```
 
