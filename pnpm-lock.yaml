@@ -5,9 +5,17 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  isomorphic-ws:
+    specifier: ^5.0.0
+    version: 5.0.0(ws@8.14.2)
   msgpackr:
     specifier: ^1.10.0
     version: 1.10.0
+
+optionalDependencies:
+  ws:
+    specifier: ^8.14.2
+    version: 8.14.2
 
 devDependencies:
   '@babel/cli':
@@ -124,6 +132,9 @@ devDependencies:
   vitest:
     specifier: 1.0.1
     version: 1.0.1(@types/node@20.10.3)
+  vitest-websocket-mock:
+    specifier: ^0.2.2
+    version: 0.2.2(vitest@1.0.1)
 
 packages:
 
@@ -4217,6 +4228,14 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /isomorphic-ws@5.0.0(ws@8.14.2):
+    resolution: {integrity: sha512-muId7Zzn9ywDsyXgTIafTry2sV3nySZeUDe6YedVd1Hvuuep5AsIlqK+XefWpYTyJG5e503F2xIuT2lcU6rCSw==}
+    peerDependencies:
+      ws: '*'
+    dependencies:
+      ws: 8.14.2
+    dev: false
+
   /istanbul-lib-coverage@3.2.2:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
     engines: {node: '>=8'}
@@ -4764,6 +4783,11 @@ packages:
       pathe: 1.1.1
       pkg-types: 1.0.3
       ufo: 1.3.2
+    dev: true
+
+  /mock-socket@9.3.1:
+    resolution: {integrity: sha512-qxBgB7Qa2sEQgHFjj0dSigq7fX4k6Saisd5Nelwp2q8mlbAFh5dHV9JTTlF8viYJLSSWgMCZFUom8PJcMNBoJw==}
+    engines: {node: '>= 8'}
     dev: true
 
   /module-definition@3.4.0:
@@ -6427,6 +6451,16 @@ packages:
       fsevents: 2.3.3
     dev: true
 
+  /vitest-websocket-mock@0.2.2(vitest@1.0.1):
+    resolution: {integrity: sha512-S/tZjCmYHxXmticnclsOBDxU8mPgdFHA5rao2CK2s17gZSbxC7u+RN268uckQ8y3Z/wtnbWG2Y9DDHUeAZJL0g==}
+    peerDependencies:
+      vitest: '>=0.31.0 <1'
+    dependencies:
+      jest-diff: 29.7.0
+      mock-socket: 9.3.1
+      vitest: 1.0.1(@types/node@20.10.3)
+    dev: true
+
   /vitest@1.0.1(@types/node@20.10.3):
     resolution: {integrity: sha512-MHsOj079S28hDsvdDvyD1pRj4dcS51EC5Vbe0xvOYX+WryP8soiK2dm8oULi+oA/8Xa/h6GoJEMTmcmBy5YM+Q==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -6593,6 +6627,20 @@ packages:
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
     dev: true
+
+  /ws@8.14.2:
+    resolution: {integrity: sha512-wEBG1ftX4jcglPxgFCMJmZ2PLtSbJ2Peg6TmpJFTbe9GZYOQCDPdMYu/Tm0/bGZkw8paZnJY45J4K2PZrLYq8g==}
+    engines: {node: '>=10.0.0'}
+    requiresBuild: true
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: false
 
   /xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
