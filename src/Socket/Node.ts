@@ -121,10 +121,7 @@ export const makeNetChannel = <IE = never>(
   void
 > =>
   Channel.unwrapScoped(
-    Effect.map(
-      makeNet(options),
-      (_) => Socket.toChannel<IE>()(_)
-    )
+    Effect.map(makeNet(options), Socket.toChannel<IE>())
   )
 
 /**

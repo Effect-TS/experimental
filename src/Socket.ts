@@ -63,12 +63,15 @@ export const toChannel = <IE = never>() =>
     Effect.gen(function*(_) {
       const writeScope = yield* _(Scope.make())
       const write = yield* _(Scope.extend(self.writer, writeScope))
-      let inputError: Cause.Cause<IE> | undefined
+      let inputError: Cause.Cause<IE | SocketError> | undefined
 
       const input: AsyncProducer.AsyncInputProducer<IE, Chunk.Chunk<Uint8Array>, unknown> = {
         awaitRead: () => Effect.unit,
         emit(chunk) {
-          return Effect.orDie(Effect.forEach(chunk, write, { discard: true }))
+          return Effect.catchAllCause(Effect.forEach(chunk, write, { discard: true }), (cause) => {
+            inputError = cause
+            return Effect.unit
+          })
         },
         error(error) {
           inputError = error
@@ -116,8 +119,4 @@ export const makeChannel = <IE = never>(): Channel.Channel<
   SocketError | IE,
   Chunk.Chunk<Uint8Array>,
   void
-> =>
-  Channel.unwrap(Effect.map(
-    Socket,
-    (_) => toChannel<IE>()(_)
-  ))
+> => Channel.unwrap(Effect.map(Socket, toChannel<IE>()))
