@@ -1,7 +1,7 @@
 /**
  * @since 1.0.0
  */
-import { Channel } from "effect"
+import * as Channel from "effect/Channel"
 import type * as Chunk from "effect/Chunk"
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
@@ -20,45 +20,21 @@ const EOF = Symbol.for("@effect/experimental/Socket/Node/EOF")
 
 /**
  * @since 1.0.0
- * @category models
- */
-export interface NetConfig {
-  readonly _: unique symbol
-}
-
-/**
- * @since 1.0.0
  * @category constructors
  */
 export const makeNet = (
   options: Net.NetConnectOpts
 ): Effect.Effect<Scope.Scope, Socket.SocketError, Socket.Socket> =>
   Effect.gen(function*(_) {
-    const queue = yield* _(Effect.acquireRelease(
-      Queue.unbounded<Uint8Array | typeof EOF>(),
-      Queue.shutdown
-    ))
-    let error: Socket.SocketError | undefined
     const conn = yield* _(Effect.acquireRelease(
       Effect.async<never, Socket.SocketError, Net.Socket>((resume) => {
         const conn = Net.createConnection(options)
-        let connected = false
         conn.on("connect", () => {
-          connected = true
+          conn.removeAllListeners()
           resume(Effect.succeed(conn))
         })
-        conn.on("data", (chunk) => {
-          Queue.unsafeOffer(queue, chunk)
-        })
-        conn.on("end", () => {
-          Queue.unsafeOffer(queue, EOF)
-        })
-        conn.on("error", (error_) => {
-          error = new Socket.SocketError({ reason: "Open", error: error_ })
-          Queue.unsafeOffer(queue, EOF)
-          if (connected === false) {
-            resume(Effect.fail(error))
-          }
+        conn.on("error", (error) => {
+          resume(Effect.fail(new Socket.SocketError({ reason: "Open", error })))
         })
         return Effect.sync(() => {
           conn.destroy()
@@ -72,6 +48,30 @@ export const makeNet = (
           conn.removeAllListeners()
         })
     ))
+    return yield* _(fromNetSocket(conn))
+  })
+
+/**
+ * @since 1.0.0
+ * @category constructors
+ */
+export const fromNetSocket = (
+  conn: Net.Socket
+): Effect.Effect<never, never, Socket.Socket> =>
+  Effect.gen(function*(_) {
+    const queue = yield* _(Queue.unbounded<Uint8Array | typeof EOF>())
+    let error: Socket.SocketError | undefined
+
+    conn.on("data", (chunk) => {
+      Queue.unsafeOffer(queue, chunk)
+    })
+    conn.on("end", () => {
+      Queue.unsafeOffer(queue, EOF)
+    })
+    conn.on("error", (error_) => {
+      error = new Socket.SocketError({ reason: "Open", error: error_ })
+      Queue.unsafeOffer(queue, EOF)
+    })
 
     const write = (chunk: Uint8Array) =>
       Effect.async<never, Socket.SocketError, void>((resume) => {

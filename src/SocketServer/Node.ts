@@ -1,0 +1,94 @@
+/**
+ * @since 1.0.0
+ */
+import * as Deferred from "effect/Deferred"
+import * as Effect from "effect/Effect"
+import { pipe } from "effect/Function"
+import * as Layer from "effect/Layer"
+import * as Queue from "effect/Queue"
+import type * as Scope from "effect/Scope"
+import * as Net from "node:net"
+import * as Socket from "../Socket/Node.js"
+import * as SocketServer from "../SocketServer.js"
+
+/**
+ * @since 1.0.0
+ */
+export * from "../SocketServer.js"
+
+/**
+ * @since 1.0.0
+ * @category constructors
+ */
+export const make = (
+  options: Net.ServerOpts
+): Effect.Effect<Scope.Scope, SocketServer.SocketServerError, SocketServer.SocketServer> =>
+  Effect.gen(function*(_) {
+    const queue = yield* _(Effect.acquireRelease(
+      Queue.unbounded<Net.Socket>(),
+      Queue.shutdown
+    ))
+    const errorDeferred = yield* _(Deferred.make<SocketServer.SocketServerError, never>())
+    yield* _(Effect.acquireRelease(
+      Effect.async<never, SocketServer.SocketServerError, Net.Server>((resume) => {
+        const server = Net.createServer(options)
+        let connected = false
+        server.on("error", (error) => {
+          const err = new SocketServer.SocketServerError({ reason: "Open", error })
+          if (connected === false) {
+            resume(Effect.fail(err))
+          }
+          Deferred.unsafeDone(errorDeferred, Effect.fail(err))
+        })
+        server.on("listening", () => {
+          connected = true
+          resume(Effect.succeed(server))
+        })
+        server.on("connection", (conn) => {
+          Queue.unsafeOffer(queue, conn)
+        })
+        return Effect.async<never, never, void>((resume) => {
+          server.removeAllListeners()
+          server.close(() => resume(Effect.unit))
+        })
+      }),
+      (server) =>
+        Effect.async<never, never, void>((resume) => {
+          server.removeAllListeners()
+          server.close(() => resume(Effect.unit))
+        })
+    ))
+
+    const take = pipe(
+      Queue.take(queue),
+      Effect.tap((conn) =>
+        Effect.addFinalizer(() =>
+          Effect.sync(() => {
+            if (conn.closed === false) {
+              conn.destroySoon()
+            }
+            conn.removeAllListeners()
+          })
+        )
+      ),
+      Effect.flatMap(Socket.fromNetSocket)
+    )
+
+    return SocketServer.SocketServer.of({
+      [SocketServer.SocketServerTypeId]: SocketServer.SocketServerTypeId,
+      join: Deferred.await(errorDeferred),
+      take
+    })
+  })
+
+/**
+ * @since 1.0.0
+ * @category layers
+ */
+export const layer = (
+  options: Net.ServerOpts
+): Layer.Layer<never, SocketServer.SocketServerError, SocketServer.SocketServer> =>
+  Layer.scoped(
+    SocketServer.SocketServer,
+    make(options)
+  )
