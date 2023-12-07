@@ -29,7 +29,7 @@ Added in v1.0.0
 
 ```ts
 export declare const make: (
-  options: Net.ServerOpts
+  options: Net.ServerOpts & Net.ListenOptions
 ) => Effect.Effect<Scope.Scope, SocketServer.SocketServerError, SocketServer.SocketServer>
 ```
 
@@ -57,7 +57,7 @@ Added in v1.0.0
 
 ```ts
 export declare const layer: (
-  options: Net.ServerOpts
+  options: Net.ServerOpts & Net.ListenOptions
 ) => Layer.Layer<never, SocketServer.SocketServerError, SocketServer.SocketServer>
 ```
 

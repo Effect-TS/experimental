@@ -30,7 +30,9 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const fromNetSocket: (conn: Net.Socket) => Effect.Effect<never, never, Socket.Socket>
+export declare const fromNetSocket: (
+  open: Effect.Effect<Scope.Scope, Socket.SocketError, Net.Socket>
+) => Effect.Effect<never, never, Socket.Socket>
 ```
 
 Added in v1.0.0

@@ -16,7 +16,10 @@ Added in v1.0.0
   - [SocketServerError (class)](#socketservererror-class)
     - [toString (method)](#tostring-method)
 - [models](#models)
+  - [Address (type alias)](#address-type-alias)
   - [SocketServer (interface)](#socketserver-interface)
+  - [TcpAddress (interface)](#tcpaddress-interface)
+  - [UnixAddress (interface)](#unixaddress-interface)
 - [tags](#tags)
   - [SocketServer](#socketserver)
 - [type ids](#type-ids)
@@ -49,6 +52,16 @@ Added in v1.0.0
 
 # models
 
+## Address (type alias)
+
+**Signature**
+
+```ts
+export type Address = UnixAddress | TcpAddress
+```
+
+Added in v1.0.0
+
 ## SocketServer (interface)
 
 **Signature**
@@ -56,8 +69,36 @@ Added in v1.0.0
 ```ts
 export interface SocketServer {
   readonly [SocketServerTypeId]: SocketServerTypeId
+  readonly address: Address
   readonly join: Effect.Effect<never, SocketServerError, never>
   readonly take: Effect.Effect<Scope.Scope, never, Socket.Socket>
+}
+```
+
+Added in v1.0.0
+
+## TcpAddress (interface)
+
+**Signature**
+
+```ts
+export interface TcpAddress {
+  readonly _tag: "TcpAddress"
+  readonly hostname: string
+  readonly port: number
+}
+```
+
+Added in v1.0.0
+
+## UnixAddress (interface)
+
+**Signature**
+
+```ts
+export interface UnixAddress {
+  readonly _tag: "UnixAddress"
+  readonly path: string
 }
 ```
 

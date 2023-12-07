@@ -33,6 +33,7 @@ export const SocketServer: Context.Tag<SocketServer, SocketServer> = Context.Tag
  */
 export interface SocketServer {
   readonly [SocketServerTypeId]: SocketServerTypeId
+  readonly address: Address
   readonly join: Effect.Effect<never, SocketServerError, never>
   readonly take: Effect.Effect<Scope.Scope, never, Socket.Socket>
 }
@@ -51,4 +52,29 @@ export class SocketServerError extends Data.TaggedError("SocketServerError")<{
   toString(): string {
     return `SocketServerError: ${this.reason} - ${this.error}`
   }
+}
+
+/**
+ * @since 1.0.0
+ * @category models
+ */
+export type Address = UnixAddress | TcpAddress
+
+/**
+ * @since 1.0.0
+ * @category models
+ */
+export interface TcpAddress {
+  readonly _tag: "TcpAddress"
+  readonly hostname: string
+  readonly port: number
+}
+
+/**
+ * @since 1.0.0
+ * @category models
+ */
+export interface UnixAddress {
+  readonly _tag: "UnixAddress"
+  readonly path: string
 }

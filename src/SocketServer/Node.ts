@@ -21,7 +21,7 @@ export * from "../SocketServer.js"
  * @category constructors
  */
 export const make = (
-  options: Net.ServerOpts
+  options: Net.ServerOpts & Net.ListenOptions
 ): Effect.Effect<Scope.Scope, SocketServer.SocketServerError, SocketServer.SocketServer> =>
   Effect.gen(function*(_) {
     const queue = yield* _(Effect.acquireRelease(
@@ -29,7 +29,7 @@ export const make = (
       Queue.shutdown
     ))
     const errorDeferred = yield* _(Deferred.make<SocketServer.SocketServerError, never>())
-    yield* _(Effect.acquireRelease(
+    const server = yield* _(Effect.acquireRelease(
       Effect.async<never, SocketServer.SocketServerError, Net.Server>((resume) => {
         const server = Net.createServer(options)
         let connected = false
@@ -47,6 +47,7 @@ export const make = (
         server.on("connection", (conn) => {
           Queue.unsafeOffer(queue, conn)
         })
+        server.listen(options)
         return Effect.async<never, never, void>((resume) => {
           server.removeAllListeners()
           server.close(() => resume(Effect.unit))
@@ -61,21 +62,35 @@ export const make = (
 
     const take = pipe(
       Queue.take(queue),
-      Effect.tap((conn) =>
-        Effect.addFinalizer(() =>
-          Effect.sync(() => {
-            if (conn.closed === false) {
-              conn.destroySoon()
-            }
-            conn.removeAllListeners()
-          })
+      Effect.flatMap((conn) =>
+        Socket.fromNetSocket(
+          Effect.acquireRelease(
+            Effect.succeed(conn),
+            (conn) =>
+              Effect.sync(() => {
+                if (conn.closed === false) {
+                  conn.destroySoon()
+                }
+                conn.removeAllListeners()
+              })
+          )
         )
-      ),
-      Effect.flatMap(Socket.fromNetSocket)
+      )
     )
+    const address = server.address()!
 
     return SocketServer.SocketServer.of({
       [SocketServer.SocketServerTypeId]: SocketServer.SocketServerTypeId,
+      address: typeof address === "string" ?
+        {
+          _tag: "UnixAddress",
+          path: address
+        } :
+        {
+          _tag: "TcpAddress",
+          hostname: address.address,
+          port: address.port
+        },
       join: Deferred.await(errorDeferred),
       take
     })
@@ -86,7 +101,7 @@ export const make = (
  * @category layers
  */
 export const layer = (
-  options: Net.ServerOpts
+  options: Net.ServerOpts & Net.ListenOptions
 ): Layer.Layer<never, SocketServer.SocketServerError, SocketServer.SocketServer> =>
   Layer.scoped(
     SocketServer.SocketServer,
