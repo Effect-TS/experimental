@@ -75,7 +75,7 @@ Added in v1.0.0
 
 ```ts
 export declare const makeWebSocket: (
-  url: string,
+  url: string | Effect.Effect<never, never, string>,
   options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
 ) => Effect.Effect<Scope.Scope, SocketError, Socket>
 ```
@@ -141,8 +141,9 @@ Added in v1.0.0
 ```ts
 export interface Socket {
   readonly [SocketTypeId]: SocketTypeId
-  readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, SocketError, void>>
-  readonly pull: Effect.Effect<never, Option.Option<SocketError>, Uint8Array>
+  readonly run: Effect.Effect<never, SocketError, void>
+  readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, never, void>>
+  readonly messages: Queue.Dequeue<Uint8Array>
 }
 ```
 

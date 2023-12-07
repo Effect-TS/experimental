@@ -13,18 +13,29 @@ Added in v1.0.0
 <h2 class="text-delta">Table of contents</h2>
 
 - [constructors](#constructors)
+  - [fromNetSocket](#fromnetsocket)
   - [makeNet](#makenet)
   - [makeNetChannel](#makenetchannel)
 - [exports](#exports)
   - [From "../Socket.js"](#from-socketjs)
 - [layers](#layers)
   - [layerNet](#layernet)
-- [models](#models)
-  - [NetConfig (interface)](#netconfig-interface)
 
 ---
 
 # constructors
+
+## fromNetSocket
+
+**Signature**
+
+```ts
+export declare const fromNetSocket: (
+  open: Effect.Effect<Scope.Scope, Socket.SocketError, Net.Socket>
+) => Effect.Effect<never, never, Socket.Socket>
+```
+
+Added in v1.0.0
 
 ## makeNet
 
@@ -80,20 +91,6 @@ Added in v1.0.0
 
 ```ts
 export declare const layerNet: (options: Net.NetConnectOpts) => Layer.Layer<never, Socket.SocketError, Socket.Socket>
-```
-
-Added in v1.0.0
-
-# models
-
-## NetConfig (interface)
-
-**Signature**
-
-```ts
-export interface NetConfig {
-  readonly _: unique symbol
-}
 ```
 
 Added in v1.0.0
