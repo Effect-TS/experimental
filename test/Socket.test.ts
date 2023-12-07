@@ -8,7 +8,7 @@ const makeServer = Effect.gen(function*(_) {
   const server = yield* _(SocketServer.make({ port: 0 }))
 
   yield* _(
-    server.take,
+    server.sockets.take,
     Effect.flatMap((socket) =>
       Effect.gen(function*(_) {
         const write = yield* _(socket.writer)

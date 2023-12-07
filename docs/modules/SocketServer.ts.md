@@ -71,7 +71,7 @@ export interface SocketServer {
   readonly [SocketServerTypeId]: SocketServerTypeId
   readonly address: Address
   readonly join: Effect.Effect<never, SocketServerError, never>
-  readonly take: Effect.Effect<Scope.Scope, never, Socket.Socket>
+  readonly sockets: Queue.Dequeue<Socket.Socket>
 }
 ```
 

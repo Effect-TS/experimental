@@ -25,7 +25,7 @@ export const make = (
 ): Effect.Effect<Scope.Scope, SocketServer.SocketServerError, SocketServer.SocketServer> =>
   Effect.gen(function*(_) {
     const queue = yield* _(Effect.acquireRelease(
-      Queue.unbounded<Net.Socket>(),
+      Queue.unbounded<Socket.Socket>(),
       Queue.shutdown
     ))
     const errorDeferred = yield* _(Deferred.make<SocketServer.SocketServerError, never>())
@@ -45,7 +45,22 @@ export const make = (
           resume(Effect.succeed(server))
         })
         server.on("connection", (conn) => {
-          Queue.unsafeOffer(queue, conn)
+          pipe(
+            Socket.fromNetSocket(
+              Effect.acquireRelease(
+                Effect.succeed(conn),
+                (conn) =>
+                  Effect.sync(() => {
+                    if (conn.closed === false) {
+                      conn.destroySoon()
+                    }
+                    conn.removeAllListeners()
+                  })
+              )
+            ),
+            Effect.flatMap((socket) => Queue.offer(queue, socket)),
+            Effect.runFork
+          )
         })
         server.listen(options)
         return Effect.async<never, never, void>((resume) => {
@@ -59,24 +74,6 @@ export const make = (
           server.close(() => resume(Effect.unit))
         })
     ))
-
-    const take = pipe(
-      Queue.take(queue),
-      Effect.flatMap((conn) =>
-        Socket.fromNetSocket(
-          Effect.acquireRelease(
-            Effect.succeed(conn),
-            (conn) =>
-              Effect.sync(() => {
-                if (conn.closed === false) {
-                  conn.destroySoon()
-                }
-                conn.removeAllListeners()
-              })
-          )
-        )
-      )
-    )
     const address = server.address()!
 
     return SocketServer.SocketServer.of({
@@ -92,7 +89,7 @@ export const make = (
           port: address.port
         },
       join: Deferred.await(errorDeferred),
-      take
+      sockets: queue
     })
   })
 

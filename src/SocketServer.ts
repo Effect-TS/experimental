@@ -4,7 +4,7 @@
 import * as Context from "effect/Context"
 import * as Data from "effect/Data"
 import type * as Effect from "effect/Effect"
-import type * as Scope from "effect/Scope"
+import type * as Queue from "effect/Queue"
 import type * as Socket from "./Socket.js"
 
 /**
@@ -35,7 +35,7 @@ export interface SocketServer {
   readonly [SocketServerTypeId]: SocketServerTypeId
   readonly address: Address
   readonly join: Effect.Effect<never, SocketServerError, never>
-  readonly take: Effect.Effect<Scope.Scope, never, Socket.Socket>
+  readonly sockets: Queue.Dequeue<Socket.Socket>
 }
 
 /**
