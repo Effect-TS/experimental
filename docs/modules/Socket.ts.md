@@ -16,8 +16,13 @@ Added in v1.0.0
   - [toChannel](#tochannel)
 - [constructors](#constructors)
   - [makeChannel](#makechannel)
+  - [makeWebSocket](#makewebsocket)
+  - [makeWebSocketChannel](#makewebsocketchannel)
 - [errors](#errors)
   - [SocketError (class)](#socketerror-class)
+    - [toString (method)](#tostring-method)
+- [layers](#layers)
+  - [layerWebSocket](#layerwebsocket)
 - [models](#models)
   - [Socket (interface)](#socket-interface)
 - [tags](#tags)
@@ -25,6 +30,8 @@ Added in v1.0.0
 - [type ids](#type-ids)
   - [SocketTypeId](#sockettypeid)
   - [SocketTypeId (type alias)](#sockettypeid-type-alias)
+- [utils](#utils)
+  - [defaultCloseCodeIsError](#defaultclosecodeiserror)
 
 ---
 
@@ -62,6 +69,32 @@ export declare const makeChannel: <IE = never>() => Channel.Channel<
 
 Added in v1.0.0
 
+## makeWebSocket
+
+**Signature**
+
+```ts
+export declare const makeWebSocket: (
+  url: string,
+  options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
+) => Effect.Effect<Scope.Scope, SocketError, Socket>
+```
+
+Added in v1.0.0
+
+## makeWebSocketChannel
+
+**Signature**
+
+```ts
+export declare const makeWebSocketChannel: <IE = never>(
+  url: string,
+  options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
+) => Channel.Channel<never, IE, Chunk.Chunk<Uint8Array>, unknown, SocketError | IE, Chunk.Chunk<Uint8Array>, void>
+```
+
+Added in v1.0.0
+
 # errors
 
 ## SocketError (class)
@@ -70,6 +103,31 @@ Added in v1.0.0
 
 ```ts
 export declare class SocketError
+```
+
+Added in v1.0.0
+
+### toString (method)
+
+**Signature**
+
+```ts
+toString(): string
+```
+
+Added in v1.0.0
+
+# layers
+
+## layerWebSocket
+
+**Signature**
+
+```ts
+export declare const layerWebSocket: (
+  url: string,
+  options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
+) => Layer.Layer<never, SocketError, Socket>
 ```
 
 Added in v1.0.0
@@ -120,6 +178,18 @@ Added in v1.0.0
 
 ```ts
 export type SocketTypeId = typeof SocketTypeId
+```
+
+Added in v1.0.0
+
+# utils
+
+## defaultCloseCodeIsError
+
+**Signature**
+
+```ts
+export declare const defaultCloseCodeIsError: (code: number) => boolean
 ```
 
 Added in v1.0.0
