@@ -16,6 +16,7 @@ Added in v1.0.0
   - [toChannel](#tochannel)
   - [toChannelWith](#tochannelwith)
 - [constructors](#constructors)
+  - [fromWebSocket](#fromwebsocket)
   - [makeChannel](#makechannel)
   - [makeWebSocket](#makewebsocket)
   - [makeWebSocketChannel](#makewebsocketchannel)
@@ -64,6 +65,19 @@ Added in v1.0.0
 
 # constructors
 
+## fromWebSocket
+
+**Signature**
+
+```ts
+export declare const fromWebSocket: (
+  acquire: Effect.Effect<Scope.Scope, SocketError, globalThis.WebSocket>,
+  options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
+) => Effect.Effect<never, never, Socket>
+```
+
+Added in v1.0.0
+
 ## makeChannel
 
 **Signature**
@@ -90,7 +104,7 @@ Added in v1.0.0
 export declare const makeWebSocket: (
   url: string | Effect.Effect<never, never, string>,
   options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
-) => Effect.Effect<Scope.Scope, SocketError, Socket>
+) => Effect.Effect<never, never, Socket>
 ```
 
 Added in v1.0.0
@@ -140,7 +154,7 @@ Added in v1.0.0
 export declare const layerWebSocket: (
   url: string,
   options?: { readonly closeCodeIsError?: ((code: number) => boolean) | undefined } | undefined
-) => Layer.Layer<never, SocketError, Socket>
+) => Layer.Layer<never, never, Socket>
 ```
 
 Added in v1.0.0

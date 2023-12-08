@@ -14,10 +14,12 @@ Added in v1.0.0
 
 - [constructors](#constructors)
   - [make](#make)
+  - [makeWebSocket](#makewebsocket)
 - [exports](#exports)
   - [From "../SocketServer.js"](#from-socketserverjs)
 - [layers](#layers)
   - [layer](#layer)
+  - [layerWebSocket](#layerwebsocket)
 
 ---
 
@@ -30,6 +32,18 @@ Added in v1.0.0
 ```ts
 export declare const make: (
   options: Net.ServerOpts & Net.ListenOptions
+) => Effect.Effect<Scope.Scope, SocketServer.SocketServerError, SocketServer.SocketServer>
+```
+
+Added in v1.0.0
+
+## makeWebSocket
+
+**Signature**
+
+```ts
+export declare const makeWebSocket: (
+  options: WS.ServerOptions
 ) => Effect.Effect<Scope.Scope, SocketServer.SocketServerError, SocketServer.SocketServer>
 ```
 
@@ -58,6 +72,18 @@ Added in v1.0.0
 ```ts
 export declare const layer: (
   options: Net.ServerOpts & Net.ListenOptions
+) => Layer.Layer<never, SocketServer.SocketServerError, SocketServer.SocketServer>
+```
+
+Added in v1.0.0
+
+## layerWebSocket
+
+**Signature**
+
+```ts
+export declare const layerWebSocket: (
+  options: WS.ServerOptions
 ) => Layer.Layer<never, SocketServer.SocketServerError, SocketServer.SocketServer>
 ```
 
