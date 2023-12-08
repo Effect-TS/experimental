@@ -200,7 +200,7 @@ export const makeWebSocket = (url: string | Effect.Effect<never, never, string>,
         Effect.tap((chunk) =>
           Effect.try({
             try: () => ws.send(chunk),
-            catch: (error) => Effect.fail(new SocketError({ reason: "Write", error }))
+            catch: (error) => Effect.fail(new SocketError({ reason: "Write", error: (error as any).message }))
           })
         ),
         Effect.forever,
@@ -208,16 +208,6 @@ export const makeWebSocket = (url: string | Effect.Effect<never, never, string>,
       )
 
       yield* _(Effect.async<never, SocketError, void>((resume) => {
-        ws.onmessage = (event) => {
-          Queue.unsafeOffer(
-            messages,
-            event.data instanceof Uint8Array
-              ? event.data
-              : typeof event.data === "string"
-              ? encoder.encode(event.data)
-              : new Uint8Array(event.data)
-          )
-        }
         ws.onclose = (event) => {
           if (closeCodeIsError(event.code)) {
             resume(Effect.fail(new SocketError({ reason: "Close", error: event })))
@@ -225,13 +215,8 @@ export const makeWebSocket = (url: string | Effect.Effect<never, never, string>,
             resume(Effect.unit)
           }
         }
-        ws.onerror = (error_) => {
-          resume(Effect.fail(
-            new SocketError({
-              reason: "Read",
-              error: (error_ as any).message
-            })
-          ))
+        ws.onerror = (error) => {
+          resume(Effect.fail(new SocketError({ reason: "Read", error: (error as any).message })))
         }
       }))
     }).pipe(Effect.scoped)
