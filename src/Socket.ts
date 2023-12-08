@@ -65,8 +65,7 @@ export class SocketError extends Data.TaggedError("SocketError")<{
  * @since 1.0.0
  * @category combinators
  */
-export const toChannel = <IE = never>() =>
-(
+export const toChannel = <IE>(
   self: Socket
 ): Channel.Channel<never, IE, Chunk.Chunk<Uint8Array>, unknown, SocketError | IE, Chunk.Chunk<Uint8Array>, void> =>
   Channel.unwrap(
@@ -130,6 +129,16 @@ export const toChannel = <IE = never>() =>
 
 /**
  * @since 1.0.0
+ * @category combinators
+ */
+export const toChannelWith = <IE = never>() =>
+(
+  self: Socket
+): Channel.Channel<never, IE, Chunk.Chunk<Uint8Array>, unknown, SocketError | IE, Chunk.Chunk<Uint8Array>, void> =>
+  toChannel(self)
+
+/**
+ * @since 1.0.0
  * @category constructors
  */
 export const makeChannel = <IE = never>(): Channel.Channel<
@@ -140,7 +149,7 @@ export const makeChannel = <IE = never>(): Channel.Channel<
   SocketError | IE,
   Chunk.Chunk<Uint8Array>,
   void
-> => Channel.unwrap(Effect.map(Socket, toChannel<IE>()))
+> => Channel.unwrap(Effect.map(Socket, toChannelWith<IE>()))
 
 /**
  * @since 1.0.0
@@ -251,7 +260,7 @@ export const makeWebSocketChannel = <IE = never>(
   void
 > =>
   Channel.unwrapScoped(
-    Effect.map(makeWebSocket(url, options), toChannel<IE>())
+    Effect.map(makeWebSocket(url, options), toChannelWith<IE>())
   )
 
 /**
