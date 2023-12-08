@@ -17,9 +17,11 @@ Added in v1.0.0
   - [makeServer](#makeserver)
   - [makeTracer](#maketracer)
 - [layers](#layers)
+  - [layerClient](#layerclient)
   - [layerTracer](#layertracer)
 - [models](#models)
-  - [HostPortConfig (interface)](#hostportconfig-interface)
+  - [Client (interface)](#client-interface)
+  - [ClientImpl (interface)](#clientimpl-interface)
   - [ServerImpl (interface)](#serverimpl-interface)
 - [schemas](#schemas)
   - [ExternalSpan](#externalspan)
@@ -41,6 +43,7 @@ Added in v1.0.0
   - [SpanStatusEnded](#spanstatusended)
   - [SpanStatusStarted](#spanstatusstarted)
 - [tags](#tags)
+  - [Client](#client)
   - [Server](#server)
   - [Server (interface)](#server-interface)
 
@@ -53,10 +56,7 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const makeClient: ({
-  host,
-  port
-}?: HostPortConfig) => Stream.Stream<never, Socket.SocketError | ParseError | MsgPack.MsgPackError, Span>
+export declare const makeClient: Effect.Effect<Socket.Socket | Scope.Scope, never, ClientImpl>
 ```
 
 Added in v1.0.0
@@ -66,10 +66,14 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const makeServer: ({
-  host,
-  port
-}?: HostPortConfig) => Effect.Effect<Scope.Scope, SocketServer.SocketServerError, ServerImpl>
+export declare const makeServer: Effect.Effect<
+  SocketServer.SocketServer | Scope.Scope,
+  never,
+  {
+    readonly run: Effect.Effect<never, SocketServer.SocketServerError, never>
+    readonly clients: Queue.Queue<Queue.Dequeue<Span>>
+  }
+>
 ```
 
 Added in v1.0.0
@@ -79,35 +83,55 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const makeTracer: Effect.Effect<Scope.Scope | Server, never, Tracer.Tracer>
+export declare const makeTracer: Effect.Effect<Client, never, Tracer.Tracer>
 ```
 
 Added in v1.0.0
 
 # layers
 
+## layerClient
+
+**Signature**
+
+```ts
+export declare const layerClient: Layer.Layer<Socket.Socket, never, Client>
+```
+
+Added in v1.0.0
+
 ## layerTracer
 
 **Signature**
 
 ```ts
-export declare const layerTracer: (hostPortConfig?: HostPortConfig) => Layer.Layer<never, never, never>
+export declare const layerTracer: (url?: string) => Layer.Layer<never, never, never>
 ```
 
 Added in v1.0.0
 
 # models
 
-## HostPortConfig (interface)
+## Client (interface)
 
 **Signature**
 
 ```ts
-export interface HostPortConfig {
-  /** defaults to 34437 */
-  readonly port?: number
-  /** defaults to 127.0.0.1 */
-  readonly host?: string
+export interface Client {
+  readonly _: unique symbol
+}
+```
+
+Added in v1.0.0
+
+## ClientImpl (interface)
+
+**Signature**
+
+```ts
+export interface ClientImpl {
+  readonly unsafeWrite: (_: Span) => void
+  readonly write: (_: Span) => Effect.Effect<never, never, void>
 }
 ```
 
@@ -120,7 +144,7 @@ Added in v1.0.0
 ```ts
 export interface ServerImpl {
   readonly run: Effect.Effect<never, SocketServer.SocketServerError, never>
-  readonly responses: Queue.Enqueue<Response>
+  readonly clients: Queue.Dequeue<Queue.Dequeue<Span>>
 }
 ```
 
@@ -167,9 +191,9 @@ Added in v1.0.0
 
 ```ts
 export declare const ParentSpan: Schema.Schema<
-  | SpanFrom
-  | { readonly _tag: "ExternalSpan"; readonly spanId: string; readonly traceId: string; readonly sampled: boolean },
-  Span | { readonly _tag: "ExternalSpan"; readonly spanId: string; readonly traceId: string; readonly sampled: boolean }
+  | { readonly _tag: "ExternalSpan"; readonly spanId: string; readonly traceId: string; readonly sampled: boolean }
+  | SpanFrom,
+  { readonly _tag: "ExternalSpan"; readonly spanId: string; readonly traceId: string; readonly sampled: boolean } | Span
 >
 ```
 
@@ -220,7 +244,7 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const Request: Schema.Schema<{ readonly _tag: "Ping" }, { readonly _tag: "Ping" }>
+export declare const Request: Schema.Schema<SpanFrom | { readonly _tag: "Ping" }, Span | { readonly _tag: "Ping" }>
 ```
 
 Added in v1.0.0
@@ -240,7 +264,7 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const Response: Schema.Schema<SpanFrom | { readonly _tag: "Pong" }, Span | { readonly _tag: "Pong" }>
+export declare const Response: Schema.Schema<{ readonly _tag: "Pong" }, { readonly _tag: "Pong" }>
 ```
 
 Added in v1.0.0
@@ -363,6 +387,16 @@ export declare const SpanStatusStarted: Schema.Schema<
 Added in v1.0.0
 
 # tags
+
+## Client
+
+**Signature**
+
+```ts
+export declare const Client: Context.Tag<Client, ClientImpl>
+```
+
+Added in v1.0.0
 
 ## Server
 
