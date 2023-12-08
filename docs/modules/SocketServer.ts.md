@@ -1,6 +1,6 @@
 ---
 title: SocketServer.ts
-nav_order: 6
+nav_order: 7
 parent: Modules
 ---
 
@@ -69,8 +69,8 @@ Added in v1.0.0
 ```ts
 export interface SocketServer {
   readonly [SocketServerTypeId]: SocketServerTypeId
-  readonly address: Address
-  readonly join: Effect.Effect<never, SocketServerError, never>
+  readonly address: Effect.Effect<never, never, Address>
+  readonly run: Effect.Effect<never, SocketServerError, never>
   readonly sockets: Queue.Dequeue<Socket.Socket>
 }
 ```

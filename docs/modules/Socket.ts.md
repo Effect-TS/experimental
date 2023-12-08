@@ -1,6 +1,6 @@
 ---
 title: Socket.ts
-nav_order: 4
+nav_order: 5
 parent: Modules
 ---
 
@@ -14,6 +14,7 @@ Added in v1.0.0
 
 - [combinators](#combinators)
   - [toChannel](#tochannel)
+  - [toChannelWith](#tochannelwith)
 - [constructors](#constructors)
   - [makeChannel](#makechannel)
   - [makeWebSocket](#makewebsocket)
@@ -42,9 +43,21 @@ Added in v1.0.0
 **Signature**
 
 ```ts
-export declare const toChannel: <IE = never>() => (
+export declare const toChannel: <IE>(
   self: Socket
 ) => Channel.Channel<never, IE, Chunk.Chunk<Uint8Array>, unknown, IE | SocketError, Chunk.Chunk<Uint8Array>, void>
+```
+
+Added in v1.0.0
+
+## toChannelWith
+
+**Signature**
+
+```ts
+export declare const toChannelWith: <IE = never>() => (
+  self: Socket
+) => Channel.Channel<never, IE, Chunk.Chunk<Uint8Array>, unknown, SocketError | IE, Chunk.Chunk<Uint8Array>, void>
 ```
 
 Added in v1.0.0
