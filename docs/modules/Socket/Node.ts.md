@@ -1,6 +1,6 @@
 ---
 title: Socket/Node.ts
-nav_order: 6
+nav_order: 9
 parent: Modules
 ---
 
