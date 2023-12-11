@@ -90,8 +90,7 @@ Added in v1.0.0
 
 ```ts
 export interface ClientImpl {
-  readonly unsafeWrite: (_: Domain.Span) => void
-  readonly write: (_: Domain.Span) => Effect.Effect<never, never, void>
+  readonly unsafeAddSpan: (_: Domain.Span) => void
 }
 ```
 
