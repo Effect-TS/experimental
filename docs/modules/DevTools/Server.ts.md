@@ -15,6 +15,7 @@ Added in v1.0.0
 - [constructors](#constructors)
   - [make](#make)
 - [models](#models)
+  - [Client (interface)](#client-interface)
   - [ServerImpl (interface)](#serverimpl-interface)
 - [tags](#tags)
   - [Server](#server)
@@ -32,16 +33,26 @@ Added in v1.0.0
 export declare const make: Effect.Effect<
   SocketServer.SocketServer | Scope,
   never,
-  {
-    readonly run: Effect.Effect<never, SocketServer.SocketServerError, never>
-    readonly clients: Queue.Queue<Queue.Dequeue<Domain.Span>>
-  }
+  { run: Effect.Effect<never, SocketServer.SocketServerError, never>; clients: Queue.Queue<Client> }
 >
 ```
 
 Added in v1.0.0
 
 # models
+
+## Client (interface)
+
+**Signature**
+
+```ts
+export interface Client {
+  readonly queue: Queue.Dequeue<Domain.Request.WithoutPing>
+  readonly request: (_: Domain.Response.WithoutPong) => Effect.Effect<never, never, void>
+}
+```
+
+Added in v1.0.0
 
 ## ServerImpl (interface)
 
@@ -50,7 +61,7 @@ Added in v1.0.0
 ```ts
 export interface ServerImpl {
   readonly run: Effect.Effect<never, SocketServer.SocketServerError, never>
-  readonly clients: Queue.Dequeue<Queue.Dequeue<Domain.Span>>
+  readonly clients: Queue.Dequeue<Client>
 }
 ```
 
