@@ -3,10 +3,12 @@
  */
 import * as Channel from "effect/Channel"
 import type * as Chunk from "effect/Chunk"
+import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Fiber from "effect/Fiber"
 import * as Layer from "effect/Layer"
 import * as Queue from "effect/Queue"
+import * as Runtime from "effect/Runtime"
 import type * as Scope from "effect/Scope"
 import * as Net from "node:net"
 import * as Socket from "../Socket.js"
@@ -59,41 +61,50 @@ export const fromNetSocket = (
 ): Effect.Effect<never, never, Socket.Socket> =>
   Effect.gen(function*(_) {
     const sendQueue = yield* _(Queue.unbounded<Uint8Array | typeof EOF>())
-    const messagesQueue = yield* _(Queue.unbounded<Uint8Array>())
 
-    const run = Effect.gen(function*(_) {
-      const conn = yield* _(open)
-      const writeFiber = yield* _(
-        Queue.take(sendQueue),
-        Effect.tap((chunk) =>
-          Effect.async<never, Socket.SocketError, void>((resume) => {
-            if (chunk === EOF) {
-              conn.end(() => resume(Effect.unit))
-            } else {
-              conn.write(chunk, (error) => {
-                resume(error ? Effect.fail(new Socket.SocketError({ reason: "Write", error })) : Effect.unit)
-              })
-            }
-          })
-        ),
-        Effect.forever,
-        Effect.fork
-      )
-      conn.on("data", (chunk) => {
-        Queue.unsafeOffer(messagesQueue, chunk)
-      })
-      yield* _(
-        Effect.async<never, Socket.SocketError, void>((resume) => {
-          conn.on("end", () => {
-            resume(Effect.unit)
-          })
-          conn.on("error", (error) => {
-            resume(Effect.fail(new Socket.SocketError({ reason: "Read", error })))
-          })
-        }),
-        Effect.race(Fiber.join(writeFiber))
-      )
-    }).pipe(Effect.scoped)
+    const run = <R, E, _>(handler: (_: Uint8Array) => Effect.Effect<R, E, _>) =>
+      Effect.gen(function*(_) {
+        const conn = yield* _(open)
+        const runtime = yield* _(Effect.runtime<R>())
+        const run = Runtime.runFork(runtime)
+        const deferred = yield* _(Deferred.make<E, never>())
+        const writeFiber = yield* _(
+          Queue.take(sendQueue),
+          Effect.tap((chunk) =>
+            Effect.async<never, Socket.SocketError, void>((resume) => {
+              if (chunk === EOF) {
+                conn.end(() => resume(Effect.unit))
+              } else {
+                conn.write(chunk, (error) => {
+                  resume(error ? Effect.fail(new Socket.SocketError({ reason: "Write", error })) : Effect.unit)
+                })
+              }
+            })
+          ),
+          Effect.forever,
+          Effect.fork
+        )
+        conn.on("data", (chunk) => {
+          run(
+            Effect.catchAllCause(
+              handler(chunk),
+              (cause) => Deferred.failCause(deferred, cause)
+            )
+          )
+        })
+        yield* _(Effect.raceAll([
+          Effect.async<never, Socket.SocketError | E, void>((resume) => {
+            conn.on("end", () => {
+              resume(Effect.unit)
+            })
+            conn.on("error", (error) => {
+              resume(Effect.fail(new Socket.SocketError({ reason: "Read", error })))
+            })
+          }),
+          Deferred.await(deferred),
+          Fiber.join(writeFiber)
+        ]))
+      }).pipe(Effect.scoped)
 
     const write = (chunk: Uint8Array) => Queue.offer(sendQueue, chunk)
     const writer = Effect.acquireRelease(
@@ -104,8 +115,7 @@ export const fromNetSocket = (
     return Socket.Socket.of({
       [Socket.SocketTypeId]: Socket.SocketTypeId,
       run,
-      writer,
-      messages: messagesQueue
+      writer
     })
   })
 

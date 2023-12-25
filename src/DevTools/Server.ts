@@ -65,7 +65,7 @@ export const make = Effect.gen(function*(_) {
 
       yield* _(clients.offer(client))
 
-      yield* _(
+      return yield* _(
         Stream.fromQueue(responses),
         Stream.pipeThroughChannel(
           MsgPack.duplexSchema(Socket.toChannel(socket), {
@@ -84,19 +84,13 @@ export const make = Effect.gen(function*(_) {
         ]))
       )
     }).pipe(
-      Effect.catchAllCause(Effect.log),
-      Effect.fork
+      Effect.catchAllCause(Effect.log)
     )
 
-  yield* _(
-    server.sockets.take,
-    Effect.flatMap(handle),
-    Effect.forever,
-    Effect.forkScoped
-  )
+  const run = server.run(handle)
 
   return {
-    run: server.run,
+    run,
     clients
   } satisfies ServerImpl
 })

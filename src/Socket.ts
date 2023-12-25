@@ -3,13 +3,15 @@
  */
 import * as Cause from "effect/Cause"
 import * as Channel from "effect/Channel"
-import type * as Chunk from "effect/Chunk"
+import * as Chunk from "effect/Chunk"
 import * as Context from "effect/Context"
 import * as Data from "effect/Data"
+import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Exit from "effect/Exit"
 import * as Layer from "effect/Layer"
 import * as Queue from "effect/Queue"
+import * as Runtime from "effect/Runtime"
 import * as Scope from "effect/Scope"
 import type * as AsyncProducer from "effect/SingleProducerAsyncInput"
 import WebSocket from "isomorphic-ws"
@@ -40,10 +42,11 @@ export const Socket: Context.Tag<Socket, Socket> = Context.Tag<Socket>(
  */
 export interface Socket {
   readonly [SocketTypeId]: SocketTypeId
-  readonly run: Effect.Effect<never, SocketError, void>
+  readonly run: <R, E, _>(
+    handler: (_: Uint8Array) => Effect.Effect<R, E, _>
+  ) => Effect.Effect<R, SocketError | E, void>
   readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, never, void>>
-  readonly messages: Queue.Dequeue<Uint8Array>
-  readonly source?: unknown
+  // readonly messages: Queue.Dequeue<Uint8Array>
 }
 
 /**
@@ -95,16 +98,10 @@ export const toChannel = <IE>(
       }
 
       yield* _(
-        self.run,
+        self.run((data) => Queue.offer(exitQueue, Exit.succeed(Chunk.of(data)))),
         Effect.zipRight(Effect.failCause(Cause.empty)),
         Effect.exit,
         Effect.tap((exit) => Queue.offer(exitQueue, exit)),
-        Effect.fork
-      )
-      yield* _(
-        Queue.takeBetween(self.messages, 1, Number.MAX_SAFE_INTEGER),
-        Effect.flatMap((chunk) => Queue.offer(exitQueue, Exit.succeed(chunk))),
-        Effect.forever,
         Effect.fork
       )
 
@@ -191,59 +188,69 @@ export const fromWebSocket = (
   Effect.gen(function*(_) {
     const closeCodeIsError = options?.closeCodeIsError ?? defaultCloseCodeIsError
     const sendQueue = yield* _(Queue.unbounded<Uint8Array>())
-    const messages = yield* _(Queue.unbounded<Uint8Array>())
 
-    const run = Effect.gen(function*(_) {
-      const ws = yield* _(acquire)
-      const encoder = new TextEncoder()
+    const run = <R, E, _>(handler: (_: Uint8Array) => Effect.Effect<R, E, _>) =>
+      Effect.gen(function*(_) {
+        const ws = yield* _(acquire)
+        const encoder = new TextEncoder()
+        const runtime = yield* _(Effect.runtime<R>())
+        const deferred = yield* _(Deferred.make<E, never>())
+        const run = Runtime.runFork(runtime)
 
-      ws.onmessage = (event) => {
-        Queue.unsafeOffer(
-          messages,
-          event.data instanceof Uint8Array
-            ? event.data
-            : typeof event.data === "string"
-            ? encoder.encode(event.data)
-            : new Uint8Array(event.data)
+        ws.onmessage = (event) => {
+          run(
+            Effect.catchAllCause(
+              handler(
+                event.data instanceof Uint8Array
+                  ? event.data
+                  : typeof event.data === "string"
+                  ? encoder.encode(event.data)
+                  : new Uint8Array(event.data)
+              ),
+              (cause) => Deferred.failCause(deferred, cause)
+            )
+          )
+        }
+
+        if (ws.readyState !== WebSocket.OPEN) {
+          yield* _(Effect.async<never, SocketError, void>((resume) => {
+            ws.onopen = () => {
+              resume(Effect.unit)
+            }
+            ws.onerror = (error_) => {
+              resume(Effect.fail(new SocketError({ reason: "Open", error: (error_ as any).message })))
+            }
+          }))
+        }
+
+        yield* _(
+          Queue.take(sendQueue),
+          Effect.tap((chunk) =>
+            Effect.try({
+              try: () => ws.send(chunk),
+              catch: (error) => Effect.fail(new SocketError({ reason: "Write", error: (error as any).message }))
+            })
+          ),
+          Effect.forever,
+          Effect.fork
         )
-      }
 
-      if (ws.readyState !== WebSocket.OPEN) {
-        yield* _(Effect.async<never, SocketError, void>((resume) => {
-          ws.onopen = () => {
-            resume(Effect.unit)
-          }
-          ws.onerror = (error_) => {
-            resume(Effect.fail(new SocketError({ reason: "Open", error: (error_ as any).message })))
-          }
-        }))
-      }
-
-      yield* _(
-        Queue.take(sendQueue),
-        Effect.tap((chunk) =>
-          Effect.try({
-            try: () => ws.send(chunk),
-            catch: (error) => Effect.fail(new SocketError({ reason: "Write", error: (error as any).message }))
-          })
-        ),
-        Effect.forever,
-        Effect.fork
-      )
-
-      yield* _(Effect.async<never, SocketError, void>((resume) => {
-        ws.onclose = (event) => {
-          if (closeCodeIsError(event.code)) {
-            resume(Effect.fail(new SocketError({ reason: "Close", error: event })))
-          } else {
-            resume(Effect.unit)
-          }
-        }
-        ws.onerror = (error) => {
-          resume(Effect.fail(new SocketError({ reason: "Read", error: (error as any).message })))
-        }
-      }))
-    }).pipe(Effect.scoped)
+        yield* _(Effect.race(
+          Effect.async<never, SocketError, void>((resume) => {
+            ws.onclose = (event) => {
+              if (closeCodeIsError(event.code)) {
+                resume(Effect.fail(new SocketError({ reason: "Close", error: event })))
+              } else {
+                resume(Effect.unit)
+              }
+            }
+            ws.onerror = (error) => {
+              resume(Effect.fail(new SocketError({ reason: "Read", error: (error as any).message })))
+            }
+          }),
+          Deferred.await(deferred)
+        ))
+      }).pipe(Effect.scoped)
 
     const write = (chunk: Uint8Array) => Queue.offer(sendQueue, chunk)
     const writer = Effect.succeed(write)
@@ -251,8 +258,7 @@ export const fromWebSocket = (
     return Socket.of({
       [SocketTypeId]: SocketTypeId,
       run,
-      writer,
-      messages
+      writer
     })
   })
 
