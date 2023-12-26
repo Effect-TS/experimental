@@ -20,6 +20,9 @@ Added in v1.0.0
   - [From "../Socket.js"](#from-socketjs)
 - [layers](#layers)
   - [layerNet](#layernet)
+- [tags](#tags)
+  - [NetSocket](#netsocket)
+  - [NetSocket (interface)](#netsocket-interface)
 
 ---
 
@@ -91,6 +94,30 @@ Added in v1.0.0
 
 ```ts
 export declare const layerNet: (options: Net.NetConnectOpts) => Layer.Layer<never, Socket.SocketError, Socket.Socket>
+```
+
+Added in v1.0.0
+
+# tags
+
+## NetSocket
+
+**Signature**
+
+```ts
+export declare const NetSocket: Context.Tag<NetSocket, Net.Socket>
+```
+
+Added in v1.0.0
+
+## NetSocket (interface)
+
+**Signature**
+
+```ts
+export interface NetSocket {
+  readonly _: unique symbol
+}
 ```
 
 Added in v1.0.0

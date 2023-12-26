@@ -31,9 +31,13 @@ Added in v1.0.0
 
 ```ts
 export declare const make: Effect.Effect<
-  SocketServer.SocketServer | Scope,
+  SocketServer.SocketServer,
   never,
-  { run: Effect.Effect<never, SocketServer.SocketServerError, never>; clients: Queue.Queue<Client> }
+  {
+    run: <R, E, _>(
+      handle: (client: Client) => Effect.Effect<R, E, _>
+    ) => Effect.Effect<R, SocketServer.SocketServerError, never>
+  }
 >
 ```
 
@@ -60,8 +64,9 @@ Added in v1.0.0
 
 ```ts
 export interface ServerImpl {
-  readonly run: Effect.Effect<never, SocketServer.SocketServerError, never>
-  readonly clients: Queue.Dequeue<Client>
+  readonly run: <R, E, _>(
+    handle: (client: Client) => Effect.Effect<R, E, _>
+  ) => Effect.Effect<R, SocketServer.SocketServerError | E, never>
 }
 ```
 
