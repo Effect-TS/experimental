@@ -4,7 +4,6 @@
 import * as Channel from "effect/Channel"
 import type * as Chunk from "effect/Chunk"
 import * as Context from "effect/Context"
-import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Fiber from "effect/Fiber"
 import * as Layer from "effect/Layer"
@@ -84,7 +83,6 @@ export const fromNetSocket = (
         const conn = yield* _(open)
         const runtime = yield* _(Effect.runtime<R>(), Effect.provideService(NetSocket, conn))
         const run = Runtime.runFork(runtime)
-        const deferred = yield* _(Deferred.make<E, never>())
         const writeFiber = yield* _(
           Queue.take(sendQueue),
           Effect.tap((chunk) =>
@@ -105,12 +103,12 @@ export const fromNetSocket = (
           run(
             Effect.catchAllCause(
               handler(chunk),
-              (cause) => Deferred.failCause(deferred, cause)
+              (cause) => Effect.log(cause, "Unhandled error in Node Socket")
             )
           )
         })
-        yield* _(Effect.raceAll([
-          Effect.async<never, Socket.SocketError | E, void>((resume) => {
+        yield* _(Effect.race(
+          Effect.async<never, Socket.SocketError, void>((resume) => {
             conn.on("end", () => {
               resume(Effect.unit)
             })
@@ -118,9 +116,8 @@ export const fromNetSocket = (
               resume(Effect.fail(new Socket.SocketError({ reason: "Read", error })))
             })
           }),
-          Deferred.await(deferred),
           Fiber.join(writeFiber)
-        ]))
+        ))
       }).pipe(Effect.scoped)
 
     const write = (chunk: Uint8Array) => Queue.offer(sendQueue, chunk)

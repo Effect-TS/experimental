@@ -36,7 +36,7 @@ export declare const make: Effect.Effect<
   {
     run: <R, E, _>(
       handle: (client: Client) => Effect.Effect<R, E, _>
-    ) => Effect.Effect<R, SocketServer.SocketServerError | E, never>
+    ) => Effect.Effect<R, SocketServer.SocketServerError, never>
   }
 >
 ```

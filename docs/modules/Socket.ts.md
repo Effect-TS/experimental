@@ -170,7 +170,7 @@ Added in v1.0.0
 ```ts
 export interface Socket {
   readonly [SocketTypeId]: SocketTypeId
-  readonly run: <R, E, _>(handler: (_: Uint8Array) => Effect.Effect<R, E, _>) => Effect.Effect<R, SocketError | E, void>
+  readonly run: <R, E, _>(handler: (_: Uint8Array) => Effect.Effect<R, E, _>) => Effect.Effect<R, SocketError, void>
   readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, never, void>>
   // readonly messages: Queue.Dequeue<Uint8Array>
 }

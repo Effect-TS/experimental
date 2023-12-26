@@ -72,7 +72,7 @@ export interface SocketServer {
   readonly address: Effect.Effect<never, never, Address>
   readonly run: <R, E, _>(
     handler: (socket: Socket.Socket) => Effect.Effect<R, E, _>
-  ) => Effect.Effect<R, SocketServerError | E, never>
+  ) => Effect.Effect<R, SocketServerError, never>
 }
 ```
 

@@ -6,7 +6,6 @@ import * as Channel from "effect/Channel"
 import * as Chunk from "effect/Chunk"
 import * as Context from "effect/Context"
 import * as Data from "effect/Data"
-import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Exit from "effect/Exit"
 import * as Layer from "effect/Layer"
@@ -44,7 +43,7 @@ export interface Socket {
   readonly [SocketTypeId]: SocketTypeId
   readonly run: <R, E, _>(
     handler: (_: Uint8Array) => Effect.Effect<R, E, _>
-  ) => Effect.Effect<R, SocketError | E, void>
+  ) => Effect.Effect<R, SocketError, void>
   readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, never, void>>
   // readonly messages: Queue.Dequeue<Uint8Array>
 }
@@ -210,7 +209,6 @@ export const fromWebSocket = (
         const ws = yield* _(acquire)
         const encoder = new TextEncoder()
         const runtime = yield* _(Effect.runtime<R>(), Effect.provideService(WebSocket, ws))
-        const deferred = yield* _(Deferred.make<E, never>())
         const run = Runtime.runFork(runtime)
 
         ws.onmessage = (event) => {
@@ -223,7 +221,7 @@ export const fromWebSocket = (
                   ? encoder.encode(event.data)
                   : new Uint8Array(event.data)
               ),
-              (cause) => Deferred.failCause(deferred, cause)
+              (cause) => Effect.log(cause, "Unhandled error in WebSocket")
             )
           )
         }
@@ -251,7 +249,7 @@ export const fromWebSocket = (
           Effect.fork
         )
 
-        yield* _(Effect.race(
+        yield* _(
           Effect.async<never, SocketError, void>((resume) => {
             ws.onclose = (event) => {
               if (closeCodeIsError(event.code)) {
@@ -263,9 +261,8 @@ export const fromWebSocket = (
             ws.onerror = (error) => {
               resume(Effect.fail(new SocketError({ reason: "Read", error: (error as any).message })))
             }
-          }),
-          Deferred.await(deferred)
-        ))
+          })
+        )
       }).pipe(Effect.scoped)
 
     const write = (chunk: Uint8Array) => Queue.offer(sendQueue, chunk)

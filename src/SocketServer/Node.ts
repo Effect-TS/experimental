@@ -51,7 +51,6 @@ export const make = (
       Effect.gen(function*(_) {
         const runtime = yield* _(Effect.runtime<R>())
         const run = Runtime.runFork(runtime)
-        const deferred = yield* _(Deferred.make<E, never>())
         return yield* _(
           Effect.async<never, SocketServer.SocketServerError, never>((resume) => {
             const server = Net.createServer(options)
@@ -83,7 +82,7 @@ export const make = (
                   )
                 ),
                 Effect.flatMap(handler),
-                Effect.catchAllCause((cause) => Deferred.failCause(deferred, cause)),
+                Effect.catchAllCause((cause) => Effect.log(cause, "Unhandled error in SocketServer handler")),
                 Effect.scoped,
                 Effect.provideService(Socket.NetSocket, conn),
                 run
@@ -95,8 +94,7 @@ export const make = (
               server.removeAllListeners()
               server.close()
             })
-          }),
-          Effect.race(Deferred.await(deferred))
+          })
         )
       }).pipe(
         semaphore.withPermits(1)
@@ -154,7 +152,6 @@ export const makeWebSocket = (
       Effect.gen(function*(_) {
         const runtime = yield* _(Effect.runtime<R>())
         const run = Runtime.runFork(runtime)
-        const deferred = yield* _(Deferred.make<E, never>())
         return yield* _(
           Effect.async<never, SocketServer.SocketServerError, never>((resume) => {
             const server = new WS.WebSocketServer(options)
@@ -183,7 +180,7 @@ export const makeWebSocket = (
                   )
                 ),
                 Effect.flatMap(handler),
-                Effect.catchAllCause((cause) => Deferred.failCause(deferred, cause)),
+                Effect.catchAllCause((cause) => Effect.log(cause, "Unhandled error in SocketServer handler")),
                 Effect.provideService(Socket.WebSocket, conn as any),
                 Effect.provideService(IncomingMessage, req),
                 run
@@ -194,8 +191,7 @@ export const makeWebSocket = (
               server.removeAllListeners()
               server.close()
             })
-          }),
-          Effect.race(Deferred.await(deferred))
+          })
         )
       }).pipe(
         semaphore.withPermits(1)
