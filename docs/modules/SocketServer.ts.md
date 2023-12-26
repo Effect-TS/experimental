@@ -70,8 +70,9 @@ Added in v1.0.0
 export interface SocketServer {
   readonly [SocketServerTypeId]: SocketServerTypeId
   readonly address: Effect.Effect<never, never, Address>
-  readonly run: Effect.Effect<never, SocketServerError, never>
-  readonly sockets: Queue.Dequeue<Socket.Socket>
+  readonly run: <R, E, _>(
+    handler: (socket: Socket.Socket) => Effect.Effect<R, E, _>
+  ) => Effect.Effect<R, SocketServerError | E, never>
 }
 ```
 

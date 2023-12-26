@@ -3,6 +3,7 @@
  */
 import * as Channel from "effect/Channel"
 import type * as Chunk from "effect/Chunk"
+import * as Context from "effect/Context"
 import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import * as Fiber from "effect/Fiber"
@@ -17,6 +18,22 @@ import * as Socket from "../Socket.js"
  * @since 1.0.0
  */
 export * from "../Socket.js"
+
+/**
+ * @since 1.0.0
+ * @category tags
+ */
+export interface NetSocket {
+  readonly _: unique symbol
+}
+
+/**
+ * @since 1.0.0
+ * @category tags
+ */
+export const NetSocket: Context.Tag<NetSocket, Net.Socket> = Context.Tag(
+  "@effect/experimental/Socket/Node/NetSocket"
+)
 
 const EOF = Symbol.for("@effect/experimental/Socket/Node/EOF")
 
@@ -65,7 +82,7 @@ export const fromNetSocket = (
     const run = <R, E, _>(handler: (_: Uint8Array) => Effect.Effect<R, E, _>) =>
       Effect.gen(function*(_) {
         const conn = yield* _(open)
-        const runtime = yield* _(Effect.runtime<R>())
+        const runtime = yield* _(Effect.runtime<R>(), Effect.provideService(NetSocket, conn))
         const run = Runtime.runFork(runtime)
         const deferred = yield* _(Deferred.make<E, never>())
         const writeFiber = yield* _(

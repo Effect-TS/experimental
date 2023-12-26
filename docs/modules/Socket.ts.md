@@ -29,6 +29,8 @@ Added in v1.0.0
   - [Socket (interface)](#socket-interface)
 - [tags](#tags)
   - [Socket](#socket)
+  - [WebSocket](#websocket)
+  - [WebSocket (interface)](#websocket-interface)
 - [type ids](#type-ids)
   - [SocketTypeId](#sockettypeid)
   - [SocketTypeId (type alias)](#sockettypeid-type-alias)
@@ -168,10 +170,9 @@ Added in v1.0.0
 ```ts
 export interface Socket {
   readonly [SocketTypeId]: SocketTypeId
-  readonly run: Effect.Effect<never, SocketError, void>
+  readonly run: <R, E, _>(handler: (_: Uint8Array) => Effect.Effect<R, E, _>) => Effect.Effect<R, SocketError | E, void>
   readonly writer: Effect.Effect<Scope.Scope, never, (chunk: Uint8Array) => Effect.Effect<never, never, void>>
-  readonly messages: Queue.Dequeue<Uint8Array>
-  readonly source?: unknown
+  // readonly messages: Queue.Dequeue<Uint8Array>
 }
 ```
 
@@ -185,6 +186,28 @@ Added in v1.0.0
 
 ```ts
 export declare const Socket: Context.Tag<Socket, Socket>
+```
+
+Added in v1.0.0
+
+## WebSocket
+
+**Signature**
+
+```ts
+export declare const WebSocket: Context.Tag<WebSocket, globalThis.WebSocket>
+```
+
+Added in v1.0.0
+
+## WebSocket (interface)
+
+**Signature**
+
+```ts
+export interface WebSocket {
+  readonly _: unique symbol
+}
 ```
 
 Added in v1.0.0

@@ -1,12 +1,14 @@
 /**
  * @since 1.0.0
  */
+import * as Context from "effect/Context"
 import * as Deferred from "effect/Deferred"
 import * as Effect from "effect/Effect"
 import { pipe } from "effect/Function"
 import * as Layer from "effect/Layer"
 import * as Runtime from "effect/Runtime"
 import type * as Scope from "effect/Scope"
+import type * as Http from "node:http"
 import * as Net from "node:net"
 import * as WS from "ws"
 import * as Socket from "../Socket/Node.js"
@@ -16,6 +18,22 @@ import * as SocketServer from "../SocketServer.js"
  * @since 1.0.0
  */
 export * from "../SocketServer.js"
+
+/**
+ * @since 1.0.0
+ * @category tags
+ */
+export interface IncomingMessage {
+  readonly _: unique symbol
+}
+
+/**
+ * @since 1.0.0
+ * @category tags
+ */
+export const IncomingMessage = Context.Tag<IncomingMessage, Http.IncomingMessage>(
+  "@effect/experimental/SocketServer/Node/IncomingMessage"
+)
 
 /**
  * @since 1.0.0
@@ -67,6 +85,7 @@ export const make = (
                 Effect.flatMap(handler),
                 Effect.catchAllCause((cause) => Deferred.failCause(deferred, cause)),
                 Effect.scoped,
+                Effect.provideService(Socket.NetSocket, conn),
                 run
               )
             })
@@ -152,7 +171,7 @@ export const makeWebSocket = (
               connected = true
               Deferred.unsafeDone(serverDeferred, Effect.succeed(server))
             })
-            server.on("connection", (conn, _req) => {
+            server.on("connection", (conn, req) => {
               pipe(
                 Socket.fromWebSocket(
                   Effect.acquireRelease(
@@ -165,6 +184,8 @@ export const makeWebSocket = (
                 ),
                 Effect.flatMap(handler),
                 Effect.catchAllCause((cause) => Deferred.failCause(deferred, cause)),
+                Effect.provideService(Socket.WebSocket, conn as any),
+                Effect.provideService(IncomingMessage, req),
                 run
               )
             })

@@ -20,6 +20,9 @@ Added in v1.0.0
 - [layers](#layers)
   - [layer](#layer)
   - [layerWebSocket](#layerwebsocket)
+- [tags](#tags)
+  - [IncomingMessage](#incomingmessage)
+  - [IncomingMessage (interface)](#incomingmessage-interface)
 
 ---
 
@@ -85,6 +88,30 @@ Added in v1.0.0
 export declare const layerWebSocket: (
   options: WS.ServerOptions
 ) => Layer.Layer<never, SocketServer.SocketServerError, SocketServer.SocketServer>
+```
+
+Added in v1.0.0
+
+# tags
+
+## IncomingMessage
+
+**Signature**
+
+```ts
+export declare const IncomingMessage: Context.Tag<IncomingMessage, Http.IncomingMessage>
+```
+
+Added in v1.0.0
+
+## IncomingMessage (interface)
+
+**Signature**
+
+```ts
+export interface IncomingMessage {
+  readonly _: unique symbol
+}
 ```
 
 Added in v1.0.0
